@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CCD Monitor</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101010;
+      --surface: #070707;
+      --line: #292929;
+      --text: #ddd;
+      --muted: #777;
+      --accent: #66c9b8;
+      --danger: #d86a70;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 44px;
+      padding: 0 16px;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--danger);
+    }
+
+    .status[data-state="connected"] .status-dot {
+      background: var(--accent);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
+      align-items: start;
+      gap: 16px;
+      width: min(1500px, 100%);
+      margin: 0 auto;
+      padding: 8px 16px 16px;
+    }
+
+    .panel {
+      min-width: 0;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 30px;
+    }
+
+    .panel-header h2 {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .panel-meta {
+      color: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .visual {
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .image-visual {
+      min-height: 0;
+    }
+
+    #camera-image {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .array-wrap {
+      min-height: 0;
+    }
+
+    .side-column {
+      display: grid;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    #array-canvas {
+      display: block;
+      width: min(100%, 680px);
+      height: auto;
+      aspect-ratio: 1;
+      image-rendering: pixelated;
+    }
+
+    .histogram-wrap {
+      padding: 6px 8px 3px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    #histogram-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      padding-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stats b {
+      margin-left: 4px;
+      color: var(--text);
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 900px) {
+      header {
+        padding: 0 12px;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+        padding: 6px 12px 12px;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CCD</h1>
+    <div id="status" class="status" data-state="disconnected">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span id="status-text">等待数据</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Image</h2>
+        <span id="image-meta" class="panel-meta">—</span>
+      </div>
+      <div class="visual image-visual">
+        <img id="camera-image" alt="CCD 实时图像">
+      </div>
+    </section>
+
+    <div class="side-column">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Array</h2>
+          <span id="array-meta" class="panel-meta">—</span>
+        </div>
+        <div class="visual array-wrap">
+          <canvas id="array-canvas" width="32" height="32"></canvas>
+        </div>
+        <div class="stats">
+          <span>Min <b id="array-min">—</b></span>
+          <span>Mean <b id="array-mean">—</b></span>
+          <span>Max <b id="array-max">—</b></span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Histogram</h2>
+          <span id="histogram-meta" class="panel-meta">32 bins · 0–255</span>
+        </div>
+        <div class="histogram-wrap">
+          <canvas id="histogram-canvas" width="640" height="210"></canvas>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const cameraImage = document.querySelector('#camera-image');
+    const arrayCanvas = document.querySelector('#array-canvas');
+    const arrayContext = arrayCanvas.getContext('2d');
+    const histogramCanvas = document.querySelector('#histogram-canvas');
+    const histogramContext = histogramCanvas.getContext('2d');
+    const status = document.querySelector('#status');
+    const statusText = document.querySelector('#status-text');
+    let objectUrl = null;
+
+    function setConnectionState(connected, text = connected ? '数据已连接' : '等待数据') {
+      status.dataset.state = connected ? 'connected' : 'disconnected';
+      statusText.textContent = text;
+    }
+
+    function setImage(source) {
+      if (!source) return;
+
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+      }
+
+      if (source instanceof Blob) {
+        objectUrl = URL.createObjectURL(source);
+        cameraImage.src = objectUrl;
+      } else {
+        cameraImage.src = source;
+      }
+    }
+
+    function heatColor(value) {
+      const x = Math.max(0, Math.min(1, value / 255));
+      const hue = 255 - 255 * x;
+      const lightness = 16 + 48 * Math.sin(Math.PI * x) + 20 * x;
+      return `hsl(${hue} 88% ${lightness}%)`;
+    }
+
+    function setHistogram(values) {
+      const binCount = 32;
+      const counts = new Uint32Array(binCount);
+
+      for (const value of values) {
+        const normalized = Math.max(0, Math.min(255, Number(value)));
+        const index = Math.min(binCount - 1, Math.floor(normalized / 256 * binCount));
+        counts[index] += 1;
+      }
+
+      const width = histogramCanvas.width;
+      const height = histogramCanvas.height;
+      const plot = { left: 42, right: 12, top: 15, bottom: 30 };
+      const plotWidth = width - plot.left - plot.right;
+      const plotHeight = height - plot.top - plot.bottom;
+      const maxCount = Math.max(1, ...counts);
+
+      histogramContext.clearRect(0, 0, width, height);
+      histogramContext.fillStyle = '#080808';
+      histogramContext.fillRect(0, 0, width, height);
+
+      histogramContext.strokeStyle = 'rgb(255 255 255 / 6%)';
+      histogramContext.lineWidth = 1;
+      for (let line = 0; line <= 4; line += 1) {
+        const y = plot.top + plotHeight * line / 4 + 0.5;
+        histogramContext.beginPath();
+        histogramContext.moveTo(plot.left, y);
+        histogramContext.lineTo(width - plot.right, y);
+        histogramContext.stroke();
+      }
+
+      const gap = 2;
+      const barWidth = plotWidth / binCount;
+      histogramContext.fillStyle = '#66c9b8';
+
+      counts.forEach((count, index) => {
+        const barHeight = count / maxCount * plotHeight;
+        histogramContext.fillRect(
+          plot.left + index * barWidth + gap / 2,
+          plot.top + plotHeight - barHeight,
+          Math.max(1, barWidth - gap),
+          barHeight,
+        );
+      });
+
+      histogramContext.fillStyle = '#888';
+      histogramContext.font = '12px system-ui, sans-serif';
+      histogramContext.textBaseline = 'top';
+      histogramContext.textAlign = 'left';
+      histogramContext.fillText('0', plot.left, height - 21);
+      histogramContext.textAlign = 'center';
+      histogramContext.fillText('128', plot.left + plotWidth / 2, height - 21);
+      histogramContext.textAlign = 'right';
+      histogramContext.fillText('255', width - plot.right, height - 21);
+      histogramContext.textBaseline = 'middle';
+      histogramContext.fillText(String(maxCount), plot.left - 8, plot.top);
+
+      document.querySelector('#histogram-meta').textContent =
+        `${binCount} bins · ${values.length} samples`;
+    }
+
+    function setArray(values, height = null, width = null) {
+      if (!values || values.length === 0) return;
+
+      const nested = Array.isArray(values) && Array.isArray(values[0]);
+      const rows = nested ? values : null;
+      const flat = nested ? rows.flat().map(Number) : values;
+      height ??= nested ? rows.length : 1;
+      width ??= nested ? rows[0].length : flat.length;
+
+      arrayCanvas.width = width;
+      arrayCanvas.height = height;
+
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          arrayContext.fillStyle = heatColor(Number(flat[y * width + x]));
+          arrayContext.fillRect(x, y, 1, 1);
+        }
+      }
+
+      const min = Math.min(...flat);
+      const max = Math.max(...flat);
+      const mean = flat.reduce((sum, value) => sum + value, 0) / flat.length;
+
+      document.querySelector('#array-meta').textContent = `${height} × ${width}`;
+      document.querySelector('#array-min').textContent = min.toFixed(2);
+      document.querySelector('#array-mean').textContent = mean.toFixed(2);
+      document.querySelector('#array-max').textContent = max.toFixed(2);
+      setHistogram(flat);
+    }
+
+    function updateView({
+      image,
+      array,
+      arrayRows = null,
+      arrayColumns = null,
+      frameId = null,
+      timestamp = null,
+    }) {
+      setImage(image);
+      setArray(array, arrayRows, arrayColumns);
+      setConnectionState(true);
+
+      const details = [];
+      if (frameId !== null) details.push(`#${frameId}`);
+      if (timestamp !== null) details.push(new Date(timestamp).toLocaleTimeString());
+      document.querySelector('#image-meta').textContent = details.join(' · ') || 'LIVE';
+    }
+
+    // Integration point for tests and alternate transports.
+    window.ccdView = { update: updateView, setConnectionState };
+
+    function decodePacket(buffer) {
+      const headerSize = 20;
+      if (buffer.byteLength < headerSize) throw new Error('packet is too short');
+
+      const view = new DataView(buffer);
+      const frameId = view.getUint32(0, true);
+      const timestamp = view.getFloat64(4, true);
+      const rows = view.getUint16(12, true);
+      const columns = view.getUint16(14, true);
+      const jpegSize = view.getUint32(16, true);
+      const arraySize = rows * columns * Float32Array.BYTES_PER_ELEMENT;
+      const jpegOffset = headerSize + arraySize;
+
+      if (jpegOffset + jpegSize !== buffer.byteLength) {
+        throw new Error('packet size mismatch');
+      }
+
+      const array = new Float32Array(buffer.slice(headerSize, jpegOffset));
+      const image = new Blob(
+        [buffer.slice(jpegOffset, jpegOffset + jpegSize)],
+        { type: 'image/jpeg' },
+      );
+
+      return { image, array, arrayRows: rows, arrayColumns: columns, frameId, timestamp };
+    }
+
+    function connect() {
+      const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+      const socket = new WebSocket(`${scheme}://${location.host}/ws`);
+      socket.binaryType = 'arraybuffer';
+
+      socket.addEventListener('open', () => {
+        setConnectionState(true, '等待图像');
+      });
+
+      socket.addEventListener('message', (event) => {
+        try {
+          updateView(decodePacket(event.data));
+        } catch (error) {
+          console.error(error);
+          setConnectionState(false, '数据格式错误');
+        }
+      });
+
+      socket.addEventListener('close', () => {
+        setConnectionState(false, '连接断开，正在重试');
+        window.setTimeout(connect, 1500);
+      });
+
+      socket.addEventListener('error', () => socket.close());
+    }
+
+    function showDemo() {
+      const size = 32;
+      const values = Array.from({ length: size }, (_, y) =>
+        Array.from({ length: size }, (_, x) => {
+          const dx = x - 15.5;
+          const dy = y - 15.5;
+          return 225 * Math.exp(-(dx * dx + dy * dy) / 75) + 18 * Math.random();
+        })
+      );
+
+      const demoCanvas = document.createElement('canvas');
+      demoCanvas.width = 720;
+      demoCanvas.height = 720;
+      const context = demoCanvas.getContext('2d');
+      const gradient = context.createRadialGradient(360, 345, 20, 360, 345, 330);
+      gradient.addColorStop(0, '#e7e7e7');
+      gradient.addColorStop(0.32, '#969696');
+      gradient.addColorStop(1, '#101010');
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, 720, 720);
+
+      updateView({
+        image: demoCanvas.toDataURL('image/jpeg', 0.9),
+        array: values,
+        frameId: 0,
+        timestamp: Date.now(),
+      });
+      setConnectionState(false, '演示数据');
+    }
+
+    if (location.protocol === 'file:') {
+      showDemo();
+    } else {
+      connect();
+    }
+  </script>
+</body>
+</html>
