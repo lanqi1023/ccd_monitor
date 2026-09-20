@@ -17,7 +17,7 @@ log = logging.getLogger()
 
 class Packet:
     def __init__(self):
-        self.HEADER = struct.Struct('<IdHHI')
+        self.HEADER = struct.Struct('<IdHHHHHHI')
         self.__lock     = Lock()
         self.__frame_id = -1
         self.__data     = None
@@ -26,7 +26,7 @@ class Packet:
         with self.__lock:
             return self.__frame_id, self.__data
 
-    def set(self, image: NDArray, array: NDArray, JPEG_QUALITY: int = 80) -> None:
+    def set(self, image: NDArray, array: NDArray, roi_info: tuple[int, int, int, int], JPEG_QUALITY: int = 80) -> None:
         success, code_array = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
         if not success:
             log.error('JPEG encoding failed')
@@ -35,7 +35,7 @@ class Packet:
         with self.__lock:
             self.__frame_id += 1
             self.__data = self.HEADER.pack(
-                self.__frame_id, time.time() * 1000, *array.shape, len(code_byte)
+                self.__frame_id, time.time() * 1000, *roi_info, *array.shape, len(code_byte)
             ) + array.astype('<f4').tobytes() + code_byte
 
 packet      = Packet()
@@ -77,6 +77,6 @@ if __name__ == '__main__':
     import uvicorn
     logging.basicConfig(
         level  = logging.INFO,
-        format = '[%(levelname).1s] %(message)s',
+        format = '[%(levelname).1s] %(message)s'
     )
     uvicorn.run(app, host = '127.0.0.1', port = 8000)

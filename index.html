@@ -7,13 +7,13 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #101010;
-      --surface: #070707;
-      --line: #292929;
-      --text: #ddd;
-      --muted: #777;
-      --accent: #66c9b8;
-      --danger: #d86a70;
+      --bg: #070a0e;
+      --surface: #080f16;
+      --line: #183044;
+      --text: #dbe8ef;
+      --muted: #728799;
+      --accent: #02bcf1;
+      --danger: #d66c73;
     }
 
     * {
@@ -27,13 +27,21 @@
       background: var(--bg);
       color: var(--text);
       font: 14px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-feature-settings: "tnum";
     }
 
     header {
+      height: 48px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 44px;
+      width: min(1500px, 100%);
+      height: 100%;
+      margin: 0 auto;
       padding: 0 16px;
     }
 
@@ -44,8 +52,10 @@
     }
 
     h1 {
+      color: #fff;
       font-size: 14px;
       font-weight: 600;
+      letter-spacing: 0.02em;
     }
 
     .status {
@@ -53,7 +63,7 @@
       align-items: center;
       gap: 7px;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .status-dot {
@@ -71,10 +81,10 @@
       display: grid;
       grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
       align-items: start;
-      gap: 16px;
+      gap: 18px;
       width: min(1500px, 100%);
       margin: 0 auto;
-      padding: 8px 16px 16px;
+      padding: 12px 16px 20px;
     }
 
     .panel {
@@ -85,12 +95,13 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 30px;
+      height: 32px;
     }
 
     .panel-header h2 {
       font-size: 13px;
       font-weight: 500;
+      letter-spacing: 0.01em;
     }
 
     .panel-meta {
@@ -104,6 +115,7 @@
       display: grid;
       place-items: center;
       overflow: hidden;
+      border-radius: 4px;
     }
 
     .image-visual {
@@ -116,13 +128,21 @@
       height: auto;
     }
 
+    #grid-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
     .array-wrap {
       min-height: 0;
     }
 
     .side-column {
       display: grid;
-      gap: 16px;
+      gap: 18px;
       min-width: 0;
     }
 
@@ -130,13 +150,14 @@
       display: block;
       width: min(100%, 680px);
       height: auto;
-      aspect-ratio: 1;
+      border-radius: 4px;
       image-rendering: pixelated;
     }
 
     .histogram-wrap {
       padding: 6px 8px 3px;
       border: 1px solid var(--line);
+      border-radius: 4px;
       background: var(--surface);
     }
 
@@ -150,7 +171,7 @@
       display: flex;
       justify-content: flex-end;
       gap: 16px;
-      padding-top: 6px;
+      padding: 7px 2px 0;
       color: var(--muted);
       font-size: 12px;
     }
@@ -163,7 +184,7 @@
     }
 
     @media (max-width: 900px) {
-      header {
+      .topbar {
         padding: 0 12px;
       }
 
@@ -177,10 +198,12 @@
 </head>
 <body>
   <header>
-    <h1>CCD</h1>
-    <div id="status" class="status" data-state="disconnected">
-      <span class="status-dot" aria-hidden="true"></span>
-      <span id="status-text">等待数据</span>
+    <div class="topbar">
+      <h1>CCD Monitor</h1>
+      <div id="status" class="status" data-state="disconnected">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="status-text">等待数据</span>
+      </div>
     </div>
   </header>
 
@@ -192,6 +215,7 @@
       </div>
       <div class="visual image-visual">
         <img id="camera-image" alt="CCD 实时图像">
+        <canvas id="grid-canvas"></canvas>
       </div>
     </section>
 
@@ -214,7 +238,7 @@
       <section class="panel">
         <div class="panel-header">
           <h2>Histogram</h2>
-          <span id="histogram-meta" class="panel-meta">32 bins · 0–255</span>
+          <span id="histogram-meta" class="panel-meta">64 bins · 0–255</span>
         </div>
         <div class="histogram-wrap">
           <canvas id="histogram-canvas" width="640" height="210"></canvas>
@@ -225,6 +249,8 @@
 
   <script>
     const cameraImage = document.querySelector('#camera-image');
+    const gridCanvas = document.querySelector('#grid-canvas');
+    const gridContext = gridCanvas.getContext('2d');
     const arrayCanvas = document.querySelector('#array-canvas');
     const arrayContext = arrayCanvas.getContext('2d');
     const histogramCanvas = document.querySelector('#histogram-canvas');
@@ -232,6 +258,7 @@
     const status = document.querySelector('#status');
     const statusText = document.querySelector('#status-text');
     let objectUrl = null;
+    let grid = null;
 
     function setConnectionState(connected, text = connected ? '数据已连接' : '等待数据') {
       status.dataset.state = connected ? 'connected' : 'disconnected';
@@ -254,15 +281,54 @@
       }
     }
 
+    function drawGrid() {
+      if (!cameraImage.naturalWidth || !cameraImage.naturalHeight) return;
+
+      const displayHeight = cameraImage.clientHeight;
+      const displayWidth = cameraImage.clientWidth;
+      const pixelRatio = window.devicePixelRatio || 1;
+      gridCanvas.height = Math.round(displayHeight * pixelRatio);
+      gridCanvas.width = Math.round(displayWidth * pixelRatio);
+      gridContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      gridContext.clearRect(0, 0, displayWidth, displayHeight);
+      if (!grid) return;
+
+      const { row, column, height, width, rows, columns } = grid;
+      const scaleY = displayHeight / cameraImage.naturalHeight;
+      const scaleX = displayWidth / cameraImage.naturalWidth;
+
+      gridContext.beginPath();
+      for (let x = 0; x <= columns; x += 1) {
+        const position = (column + width * x / columns) * scaleX;
+        gridContext.moveTo(position, row * scaleY);
+        gridContext.lineTo(position, (row + height) * scaleY);
+      }
+      for (let y = 0; y <= rows; y += 1) {
+        const position = (row + height * y / rows) * scaleY;
+        gridContext.moveTo(column * scaleX, position);
+        gridContext.lineTo((column + width) * scaleX, position);
+      }
+
+      gridContext.strokeStyle = 'rgb(0 12 24 / 55%)';
+      gridContext.lineWidth = 2;
+      gridContext.stroke();
+      gridContext.strokeStyle = 'rgb(2 188 241 / 58%)';
+      gridContext.lineWidth = 1;
+      gridContext.stroke();
+    }
+
+    cameraImage.addEventListener('load', drawGrid);
+    new ResizeObserver(drawGrid).observe(cameraImage);
+
     function heatColor(value) {
       const x = Math.max(0, Math.min(1, value / 255));
-      const hue = 255 - 255 * x;
-      const lightness = 16 + 48 * Math.sin(Math.PI * x) + 20 * x;
-      return `hsl(${hue} 88% ${lightness}%)`;
+      const saturation = 28 - 10 * x;
+      const lightness = 6 + 86 * x;
+      return `hsl(202 ${saturation}% ${lightness}%)`;
     }
 
     function setHistogram(values) {
-      const binCount = 32;
+      const binCount = 64;
       const counts = new Uint32Array(binCount);
 
       for (const value of values) {
@@ -279,7 +345,7 @@
       const maxCount = Math.max(1, ...counts);
 
       histogramContext.clearRect(0, 0, width, height);
-      histogramContext.fillStyle = '#080808';
+      histogramContext.fillStyle = '#080f16';
       histogramContext.fillRect(0, 0, width, height);
 
       histogramContext.strokeStyle = 'rgb(255 255 255 / 6%)';
@@ -294,7 +360,7 @@
 
       const gap = 2;
       const barWidth = plotWidth / binCount;
-      histogramContext.fillStyle = '#66c9b8';
+      histogramContext.fillStyle = '#029dce';
 
       counts.forEach((count, index) => {
         const barHeight = count / maxCount * plotHeight;
@@ -306,7 +372,7 @@
         );
       });
 
-      histogramContext.fillStyle = '#888';
+      histogramContext.fillStyle = '#728799';
       histogramContext.font = '12px system-ui, sans-serif';
       histogramContext.textBaseline = 'top';
       histogramContext.textAlign = 'left';
@@ -357,9 +423,24 @@
       array,
       arrayRows = null,
       arrayColumns = null,
+      roiRow = null,
+      roiColumn = null,
+      roiHeight = null,
+      roiWidth = null,
       frameId = null,
       timestamp = null,
     }) {
+      grid = [roiRow, roiColumn, roiHeight, roiWidth, arrayRows, arrayColumns]
+        .every(Number.isFinite)
+        ? {
+            row: roiRow,
+            column: roiColumn,
+            height: roiHeight,
+            width: roiWidth,
+            rows: arrayRows,
+            columns: arrayColumns,
+          }
+        : null;
       setImage(image);
       setArray(array, arrayRows, arrayColumns);
       setConnectionState(true);
@@ -374,15 +455,19 @@
     window.ccdView = { update: updateView, setConnectionState };
 
     function decodePacket(buffer) {
-      const headerSize = 20;
+      const headerSize = 28;
       if (buffer.byteLength < headerSize) throw new Error('packet is too short');
 
       const view = new DataView(buffer);
       const frameId = view.getUint32(0, true);
       const timestamp = view.getFloat64(4, true);
-      const rows = view.getUint16(12, true);
-      const columns = view.getUint16(14, true);
-      const jpegSize = view.getUint32(16, true);
+      const roiRow = view.getUint16(12, true);
+      const roiColumn = view.getUint16(14, true);
+      const roiHeight = view.getUint16(16, true);
+      const roiWidth = view.getUint16(18, true);
+      const rows = view.getUint16(20, true);
+      const columns = view.getUint16(22, true);
+      const jpegSize = view.getUint32(24, true);
       const arraySize = rows * columns * Float32Array.BYTES_PER_ELEMENT;
       const jpegOffset = headerSize + arraySize;
 
@@ -396,7 +481,18 @@
         { type: 'image/jpeg' },
       );
 
-      return { image, array, arrayRows: rows, arrayColumns: columns, frameId, timestamp };
+      return {
+        image,
+        array,
+        arrayRows: rows,
+        arrayColumns: columns,
+        roiRow,
+        roiColumn,
+        roiHeight,
+        roiWidth,
+        frameId,
+        timestamp,
+      };
     }
 
     function connect() {
@@ -426,29 +522,108 @@
     }
 
     function showDemo() {
-      const size = 32;
-      const values = Array.from({ length: size }, (_, y) =>
-        Array.from({ length: size }, (_, x) => {
-          const dx = x - 15.5;
-          const dy = y - 15.5;
-          return 225 * Math.exp(-(dx * dx + dy * dy) / 75) + 18 * Math.random();
-        })
+      const cameraHeight = 3072;
+      const cameraWidth = 4096;
+      const roiRow = 768;
+      const roiColumn = 1024;
+      const roiHeight = 1536;
+      const roiWidth = 2048;
+      const blockSize = 32;
+      const grayLevels = [0, 85, 170, 255];
+      const maxOffset = 4;
+      const noiseAmplitude = 3;
+      const fadeWidth = 384;
+      const darkLevel = 3;
+      const imageBlockHeight = cameraHeight / blockSize;
+      const imageBlockWidth = cameraWidth / blockSize;
+      const arrayHeight = roiHeight / blockSize;
+      const arrayWidth = roiWidth / blockSize;
+      const offsetRow = Math.floor(Math.random() * (2 * maxOffset + 1)) - maxOffset;
+      const offsetColumn = Math.floor(Math.random() * (2 * maxOffset + 1)) - maxOffset;
+      const imageValues = Array.from({ length: imageBlockHeight }, () =>
+        Array.from({ length: imageBlockWidth }, () =>
+          grayLevels[Math.floor(Math.random() * grayLevels.length)]
+        )
       );
 
       const demoCanvas = document.createElement('canvas');
-      demoCanvas.width = 720;
-      demoCanvas.height = 720;
+      demoCanvas.height = cameraHeight;
+      demoCanvas.width = cameraWidth;
       const context = demoCanvas.getContext('2d');
-      const gradient = context.createRadialGradient(360, 345, 20, 360, 345, 330);
-      gradient.addColorStop(0, '#e7e7e7');
-      gradient.addColorStop(0.32, '#969696');
-      gradient.addColorStop(1, '#101010');
-      context.fillStyle = gradient;
-      context.fillRect(0, 0, 720, 720);
+      context.fillStyle = `rgb(${darkLevel} ${darkLevel} ${darkLevel})`;
+      context.fillRect(0, 0, cameraWidth, cameraHeight);
+
+      const regionRow = roiRow - fadeWidth;
+      const regionColumn = roiColumn - fadeWidth;
+      const regionHeight = roiHeight + 2 * fadeWidth;
+      const regionWidth = roiWidth + 2 * fadeWidth;
+      const imageData = context.createImageData(regionWidth, regionHeight);
+      const sums = new Float64Array(arrayHeight * arrayWidth);
+
+      function edgeFade(position, begin, end) {
+        if (position < begin) {
+          const x = (position - begin + fadeWidth) / fadeWidth;
+          return x * x * (3 - 2 * x);
+        }
+        if (position >= end) {
+          const x = (end + fadeWidth - position) / fadeWidth;
+          return x * x * (3 - 2 * x);
+        }
+        return 1;
+      }
+
+      let pixel = 0;
+      for (let localRow = 0; localRow < regionHeight; localRow += 1) {
+        const imageRow = regionRow + localRow;
+        const fadeY = edgeFade(imageRow, roiRow, roiRow + roiHeight);
+        const blockRow = Math.floor((imageRow - offsetRow) / blockSize);
+
+        for (let localColumn = 0; localColumn < regionWidth; localColumn += 1) {
+          const imageColumn = regionColumn + localColumn;
+          const fadeX = edgeFade(imageColumn, roiColumn, roiColumn + roiWidth);
+          const blockColumn = Math.floor((imageColumn - offsetColumn) / blockSize);
+          const base = imageValues[blockRow][blockColumn];
+          const noise = (2 * Math.random() - 1) * noiseAmplitude;
+          const fade = fadeY * fadeX;
+          const value = Math.max(
+            0,
+            Math.min(255, Math.round(darkLevel + (base + noise - darkLevel) * fade)),
+          );
+
+          imageData.data[pixel] = value;
+          imageData.data[pixel + 1] = value;
+          imageData.data[pixel + 2] = value;
+          imageData.data[pixel + 3] = 255;
+          pixel += 4;
+
+          if (
+            imageRow >= roiRow && imageRow < roiRow + roiHeight &&
+            imageColumn >= roiColumn && imageColumn < roiColumn + roiWidth
+          ) {
+            const arrayRow = Math.floor((imageRow - roiRow) / blockSize);
+            const arrayColumn = Math.floor((imageColumn - roiColumn) / blockSize);
+            sums[arrayRow * arrayWidth + arrayColumn] += value;
+          }
+        }
+      }
+      context.putImageData(imageData, regionColumn, regionRow);
+
+      const pixelsPerCell = blockSize * blockSize;
+      const values = Array.from({ length: arrayHeight }, (_, row) =>
+        Array.from({ length: arrayWidth }, (_, column) =>
+          sums[row * arrayWidth + column] / pixelsPerCell
+        )
+      );
 
       updateView({
         image: demoCanvas.toDataURL('image/jpeg', 0.9),
         array: values,
+        arrayRows: arrayHeight,
+        arrayColumns: arrayWidth,
+        roiRow,
+        roiColumn,
+        roiHeight,
+        roiWidth,
         frameId: 0,
         timestamp: Date.now(),
       });

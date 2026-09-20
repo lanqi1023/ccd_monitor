@@ -18,7 +18,7 @@ class CCD:
 
         logging.basicConfig(
             level  = logging.INFO,
-            format = '[%(levelname).1s] %(message)s',
+            format = '[%(levelname).1s] %(message)s'
         )
         ccd = CCD()
         if ccd.open():
@@ -44,7 +44,7 @@ class CCD:
 
     3. Get / Set camera parameters
         ccd.format     = 'BayerRG8' # or 'BayerRG12'
-        ccd.size       = (1600, 1600)
+        ccd.size       = (3072, 4096) # (height, width)
         ccd.exposure   = 1000 # us
         ccd.frame_rate = 10 # fps
         ccd.process    = CCD.PROCESS_RG8 # or others
@@ -105,10 +105,10 @@ class CCD:
 
     @property
     def size(self) -> Optional[tuple[int, int]]:
-        '''Image size ``(width, height)``, 16 ≤ width ≤ 3072, 16 ≤ height ≤ 4096; both must be divisible by 16.
+        '''Image size ``(height, width)``, 16 ≤ height ≤ 3072, 16 ≤ width ≤ 4096; both must be divisible by 16.
         '''
         try:
-            return self.__feature.get_int_feature('Width').get(), self.__feature.get_int_feature('Height').get()
+            return self.__feature.get_int_feature('Height').get(), self.__feature.get_int_feature('Width').get()
         except Exception as e:
             self.log.error(f'camera size read failed: {e}')
             return None
@@ -116,8 +116,8 @@ class CCD:
     @size.setter
     def size(self, size: tuple[int, int]) -> None:
         try:
-            self.__feature.get_int_feature('Width').set(size[0])
-            self.__feature.get_int_feature('Height').set(size[1])
+            self.__feature.get_int_feature('Height').set(size[0])
+            self.__feature.get_int_feature('Width').set(size[1])
         except Exception as e:
             self.log.error(f'camera size update failed: requested={size}, error={e}')
 
