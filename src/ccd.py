@@ -174,9 +174,11 @@ class CCD:
         '''
         if not self.__capture_lock.acquire(blocking = False):
             raise RuntimeError('camera is already capturing')
-        image = None
-        self.__camera.stream_on()
+        image       = None
+        stream_flag = False
         try:
+            self.__camera.stream_on()
+            stream_flag = True
             n = 0
             while N is None or n < N:
                 if flush:
@@ -186,14 +188,21 @@ class CCD:
                     yield self.process(image)
                     n += 1
         finally:
-            self.__camera.stream_off()
-            self.__capture_lock.release()
+            try:
+                if stream_flag:
+                    self.__camera.stream_off()
+            except Exception as error:
+                self.log.error(f'camera stream stop failed: {error}')
+            finally:
+                self.__capture_lock.release()
 
     def __target(self, on_capture: Optional[Callable[..., None]], **kwargs) -> None:
+        stream_flag = False
         if not self.__capture_lock.acquire(blocking = False):
             raise RuntimeError('camera is already capturing')
-        self.__camera.stream_on()
         try:
+            self.__camera.stream_on()
+            stream_flag = True
             while not self.__event.is_set():
                 image = self.__grab()
                 if image is not None:
@@ -205,8 +214,13 @@ class CCD:
         except Exception as e:
             self.log.exception(f'capture thread stopped unexpectedly: {e}')
         finally:
-            self.__camera.stream_off()
-            self.__capture_lock.release()
+            try:
+                if stream_flag:
+                    self.__camera.stream_off()
+            except Exception as error:
+                self.log.error(f'camera stream stop failed: {error}')
+            finally:
+                self.__capture_lock.release()
 
     @property
     def thread_image(self) -> Optional[NDArray]:
@@ -232,14 +246,21 @@ class CCD:
             self.log.info('capture thread started')
             return True
 
-    def end_thread(self) -> None:
+    def end_thread(self, timeout: float = 3.0) -> bool:
         '''Request background capture to stop and wait for the thread to exit.'''
-        if self.__thread is not None:
-            if self.__thread.is_alive():
-                self.__event.set()
-                self.__thread.join()
+        if self.__thread is None:
+            return True
+        elif self.__thread.is_alive():
+            self.__event.set()
+            self.__thread.join(timeout)
+
+        if self.__thread.is_alive():
+            self.log.error(f'capture thread did not stop within {timeout}s')
+            return False
+        else:
             self.__thread = None
             self.log.info('capture thread stopped')
+            return True
 
     def list_feature(self) -> None:
         '''Print all implemented features and their current values or ranges.'''
@@ -303,6 +324,6 @@ if __name__ == '__main__':
                     if (cv2.waitKey(1) == 27):
                         break
         finally:
-            ccd.end_thread()
-            ccd.close()
+            if ccd.end_thread():
+                ccd.close()
             cv2.destroyWindow('ccd')

@@ -1,10 +1,6 @@
-# CCD Web Monitor
+# CCD Web Monitor v2.0
 
-安装 Galaxy SDK
-
-```
-https://www.daheng-imaging.com/list-58-1.html
-```
+安装 [Galaxy SDK](https://www.daheng-imaging.com/list-58-1.html)
 
 安装 Python 依赖
 
@@ -17,4 +13,6 @@ pip install -r requirements.txt
 python src/server.py
 ```
 
-访问 <http://127.0.0.1:8000>
+CCD Monitor: <http://127.0.0.1:8000>
+Input:       <http://127.0.0.1:8000/input>
+Weight:      <http://127.0.0.1:8000/weight>

@@ -1,77 +1,85 @@
-from ccd_manager import CCD_Manager
+from ccd_wrapper import CCD_Wrapper
+from main import process, main_target
+from packet import input, weight, output
 
 import asyncio
-import cv2
 import logging
-import struct
-import time
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
-from numpy.typing import NDArray
+from fastapi import FastAPI, WebSocket
+from fastapi.responses import Response, FileResponse
 from pathlib import Path
-from threading import Lock
+from threading import Thread
 from typing import Optional
 
-log = logging.getLogger()
-
-class Packet:
-    def __init__(self):
-        self.HEADER = struct.Struct('<IdHHHHHHI')
-        self.__lock     = Lock()
-        self.__frame_id = -1
-        self.__data     = None
-
-    def get(self) -> tuple[int, Optional[bytes]]:
-        with self.__lock:
-            return self.__frame_id, self.__data
-
-    def set(self, image: NDArray, array: NDArray, roi_info: tuple[int, int, int, int], JPEG_QUALITY: int = 80) -> None:
-        success, code_array = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
-        if not success:
-            log.error('JPEG encoding failed')
-            return
-        code_byte = code_array.tobytes()
-        with self.__lock:
-            self.__frame_id += 1
-            self.__data = self.HEADER.pack(
-                self.__frame_id, time.time() * 1000, *roi_info, *array.shape, len(code_byte)
-            ) + array.astype('<f4').tobytes() + code_byte
-
-packet      = Packet()
-ccd_manager = CCD_Manager()
+ccd_wrapper = CCD_Wrapper(process = process, publish = output.set)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    ccd_manager.start(on_publish = packet.set)
+    main_thread = Thread(target = main_target, daemon = True)
+    ccd_wrapper.start()
+    main_thread.start()
     try:
         yield
     finally:
-        ccd_manager.stop()
+        ccd_wrapper.stop()
 app = FastAPI(lifespan = lifespan)
 
 @app.get('/')
 async def index():
-    return FileResponse(Path(__file__).parent.parent / 'index.html')
+    return FileResponse(Path(__file__).parent.parent / 'html/index.html')
 
 @app.websocket('/ws')
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    log.info(f'web client connected')
-    last_frame_id = -1
-    try:
+    async def send_frames():
+        last_frame_id = -1
         while True:
-            frame_id, data = packet.get()
+            frame_id, data = output.get()
             if frame_id != last_frame_id:
                 await websocket.send_bytes(data)
                 last_frame_id = frame_id
             await asyncio.sleep(0.01)
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        log.info(f'web client disconnected: {e}')
+
+    async def wait_for_disconnect():
+        while True:
+            message = await websocket.receive()
+            if message['type'] == 'websocket.disconnect':
+                return
+
+    await websocket.accept()
+    sender   = asyncio.create_task(send_frames())
+    receiver = asyncio.create_task(wait_for_disconnect())
+
+    try:
+        await asyncio.wait({sender, receiver}, return_when=asyncio.FIRST_COMPLETED)
     finally:
-        log.info(f'web client closed')
+        sender.cancel()
+        receiver.cancel()
+        await asyncio.gather(sender, receiver, return_exceptions = True)
+
+def image_response(frame_id: int, image: Optional[bytes], current_id: int) -> Response:
+    headers = {
+        'Cache-Control': 'no-store',
+        'X-Frame-Id': str(frame_id)
+    }
+    if image is None:
+        return Response(status_code = 404, headers = headers)
+    elif frame_id == current_id:
+        return Response(status_code = 204, headers = headers)
+    else:
+        return Response(content = image, media_type = 'image/jpeg', headers = headers)
+
+@app.get('/api/input.jpg')
+def api_input(current_id: int = -1):
+    return image_response(*input.get(), current_id)
+
+@app.get('/api/weight.jpg')
+def api_weight(current_id: int = -1):
+    return image_response(*weight.get(), current_id)
+
+@app.get('/input')
+@app.get('/weight')
+async def image_page():
+    return FileResponse(Path(__file__).parent.parent / 'html/image.html')
 
 if __name__ == '__main__':
     import uvicorn
@@ -79,4 +87,4 @@ if __name__ == '__main__':
         level  = logging.INFO,
         format = '[%(levelname).1s] %(message)s'
     )
-    uvicorn.run(app, host = '127.0.0.1', port = 8000)
+    uvicorn.run(app, host = '0.0.0.0', port = 8000)

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image</title>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #111;
+    }
+
+    img {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      object-fit: fill;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+  <img id="image" alt="">
+
+  <script>
+    const image = document.querySelector('#image');
+    const imageType = location.pathname.split('/').filter(Boolean).at(-1);
+    const supportedTypes = new Set(['input', 'weight']);
+
+    if (!supportedTypes.has(imageType)) {
+      throw new Error(`Unsupported image type: ${imageType}`);
+    }
+
+    document.title = imageType === 'input' ? 'Input' : 'Weight';
+    image.alt = `${document.title} image`;
+
+    let frameId = -1;
+    let imageUrl = null;
+
+    async function poll() {
+      let delay = 100;
+
+      try {
+        const response = await fetch(
+          `/api/${imageType}.jpg?current_id=${frameId}`,
+          { cache: 'no-store' },
+        );
+
+        if (response.status === 204) {
+          // 当前图片没有更新。
+        } else if (response.ok) {
+          const nextFrameId = Number(response.headers.get('X-Frame-Id'));
+          if (!Number.isInteger(nextFrameId)) {
+            throw new Error('Invalid frame id');
+          }
+
+          const nextImageUrl = URL.createObjectURL(await response.blob());
+          const previousImageUrl = imageUrl;
+
+          imageUrl = nextImageUrl;
+          image.src = nextImageUrl;
+          frameId = nextFrameId;
+
+          if (previousImageUrl !== null) {
+            URL.revokeObjectURL(previousImageUrl);
+          }
+        } else {
+          throw new Error(`Image request failed: ${response.status}`);
+        }
+      } catch (error) {
+        console.error(error);
+        delay = 1000;
+      }
+
+      window.setTimeout(poll, delay);
+    }
+
+    poll();
+  </script>
+</body>
+</html>
