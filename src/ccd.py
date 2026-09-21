@@ -7,7 +7,7 @@ import logging
 import numpy as np
 from numpy.typing import NDArray
 from threading import Thread, Event, Lock
-from typing import Callable, Generator, Optional
+from typing import Callable, Iterator, Optional
 
 class CCD:
     '''
@@ -25,16 +25,16 @@ class CCD:
             ...
             ccd.close()
 
-    1. Generator mode:
+    1. Iterator mode:
 
-        images = ccd.get_generator()
+        images = ccd.get_iterator()
         try:
             for image in images:
                 ...
         finally:
             images.close()
 
-    Pass an integer to ``get_generator(N = ...)`` to acquire a finite number of frames
+    Pass an integer to ``get_iterator(N = ...)`` to acquire a finite number of frames
 
     2. Thread mode:
 
@@ -167,7 +167,7 @@ class CCD:
                 self.__camera.data_stream[0].q_buf(buf)
         return image
 
-    def get_generator(self, N: Optional[int] = None, flush: bool = False) -> Generator[NDArray[np.uint8 | np.uint16], None, None]:
+    def get_iterator(self, N: Optional[int] = None, flush: bool = False) -> Iterator[NDArray[np.uint8 | np.uint16]]:
         '''Yield ``N`` processed frames, or indefinitely when ``N`` is ``None``.
 
         ``flush`` discards queued frames before each capture.
@@ -304,11 +304,11 @@ if __name__ == '__main__':
         try:
             # ccd.list_feature()
 
-            for image in ccd.get_generator(3):
+            for image in ccd.get_iterator(3):
                 cv2.imshow('ccd', image)
                 cv2.waitKey(0)
 
-            images = ccd.get_generator()
+            images = ccd.get_iterator()
             try:
                 while (cv2.waitKey(1) != 27):
                     cv2.imshow('ccd', image)
