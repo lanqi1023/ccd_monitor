@@ -60,32 +60,55 @@ class CCD:
         self.__camera:  Optional[gxipy.Device]         = None
         self.__feature: Optional[gxipy.FeatureControl] = None
         self.__thread:       Thread  = None
-        self.__event:        Event   = Event()
+        self.__begin_event:  Event   = Event()
+        self.__end_event:    Event   = Event()
+        self.__begin_flag:   bool    = False
         self.__image:        NDArray = None
         self.__image_lock:   Lock    = Lock()
         self.__capture_lock: Lock    = Lock()
         self.log: logging.Logger = logging.getLogger(__name__)
 
     def open(self) -> bool:
-        self.__manager = gxipy.DeviceManager()
-        device_num, device_list = self.__manager.update_all_device_list()
-        if device_num > 0:
-            self.__camera  = self.__manager.open_device_by_index(1)
-            self.__feature = self.__camera.get_remote_device_feature_control()
-            self.__feature.get_enum_feature('UserSetSelector').set('Default')
-            self.__feature.get_command_feature('UserSetLoad').send_command()
-            self.log.info(f"open camera {device_list[0]['model_name']} on {device_list[0]['ip']}")
-            return True
-        else:
-            self.log.error('camera open failed: no camera detected')
+        try:
+            self.__manager = gxipy.DeviceManager()
+            device_num, device_list = self.__manager.update_all_device_list()
+            if device_num > 0:
+                self.__camera  = self.__manager.open_device_by_index(1)
+                self.__feature = self.__camera.get_remote_device_feature_control()
+                self.__feature.get_enum_feature('UserSetSelector').set('Default')
+                self.__feature.get_command_feature('UserSetLoad').send_command()
+                self.log.info(f"open camera {device_list[0]['model_name']} on {device_list[0]['ip']}")
+                return True
+            else:
+                self.log.error('camera open failed: no camera detected')
+                return False
+        except Exception as e:
+            if self.__camera is not None:
+                try:
+                    self.log.error(f'camera initialization failed: {e}, closing...')
+                    self.__camera.close_device()
+                except Exception as close_error:
+                    self.log.error(f'camera close failed: {close_error}')
+            self.log.error(f'camera open failed: {e}')
+            self.__manager = None
+            self.__camera  = None
+            self.__feature = None
             return False
 
-    def close(self) -> None:
+    def close(self) -> bool:
+        success = True
         try:
-            self.__camera.close_device()
-            self.log.info('camera closed')
+            if self.__camera is not None:
+                self.__camera.close_device()
+                self.log.info('camera closed')
         except Exception as e:
+            success = False
             self.log.error(f'camera close failed: {e}')
+        finally:
+            self.__manager = None
+            self.__camera  = None
+            self.__feature = None
+        return success
 
     @property
     def format(self) -> Optional[str]:
@@ -133,7 +156,7 @@ class CCD:
     @exposure.setter
     def exposure(self, exposure: float) -> None:
         try:
-            self.__feature.get_float_feature('ExposureTime').set(exposure)
+            self.__feature.get_float_feature('ExposureTime').set(float(exposure))
         except Exception as e:
             self.log.error(f'exposure update failed: requested={exposure}us, error={e}')
 
@@ -191,19 +214,24 @@ class CCD:
             try:
                 if stream_flag:
                     self.__camera.stream_off()
-            except Exception as error:
-                self.log.error(f'camera stream stop failed: {error}')
+            except Exception as e:
+                self.log.error(f'camera stream stop failed: {e}')
             finally:
                 self.__capture_lock.release()
 
     def __target(self, on_capture: Optional[Callable[..., None]], **kwargs) -> None:
+        lock_flag   = False
         stream_flag = False
-        if not self.__capture_lock.acquire(blocking = False):
-            raise RuntimeError('camera is already capturing')
         try:
+            if not self.__capture_lock.acquire(blocking = False):
+                raise RuntimeError('camera is already capturing')
+            lock_flag = True
             self.__camera.stream_on()
             stream_flag = True
-            while not self.__event.is_set():
+            self.__begin_flag = True
+            self.__begin_event.set()
+
+            while not self.__end_event.is_set():
                 image = self.__grab()
                 if image is not None:
                     image = self.process(image)
@@ -212,15 +240,17 @@ class CCD:
                     if on_capture is not None:
                         on_capture(image, **kwargs)
         except Exception as e:
-            self.log.exception(f'capture thread stopped unexpectedly: {e}')
+            self.log.error(f'capture thread stopped unexpectedly: {e}')
         finally:
+            self.__begin_event.set()
             try:
                 if stream_flag:
                     self.__camera.stream_off()
-            except Exception as error:
-                self.log.error(f'camera stream stop failed: {error}')
+            except Exception as e:
+                self.log.error(f'camera stream stop failed: {e}')
             finally:
-                self.__capture_lock.release()
+                if lock_flag:
+                    self.__capture_lock.release()
 
     @property
     def thread_image(self) -> Optional[NDArray]:
@@ -228,30 +258,51 @@ class CCD:
         with self.__image_lock:
             return self.__image
 
+    @property
+    def is_thread_running(self) -> bool:
+        '''Whether the background capture thread is currently alive.'''
+        return self.__thread is not None and self.__thread.is_alive()
+
     def begin_thread(self, on_capture: Optional[Callable[..., None]] = None, **kwargs) -> bool:
         '''Start background capture, optionally invoking ``on_capture`` per frame.'''
         if self.__thread is not None:
-            self.log.error('capture thread start rejected: a thread already exists')
-            return False
-        else:
-            with self.__image_lock:
-                self.__image = None
-            self.__event.clear()
-            self.__thread = Thread(
-                target = self.__target,
-                kwargs = {'on_capture': on_capture, **kwargs},
-                daemon = True
-            )
+            if self.__thread.is_alive():
+                self.log.error('a capture thread already exists')
+                return False
+            else:
+                self.__thread.join()
+        with self.__image_lock:
+            self.__image = None
+        self.__begin_event.clear()
+        self.__end_event.clear()
+        self.__begin_flag = False
+        self.__thread = Thread(
+            target = self.__target,
+            kwargs = {'on_capture': on_capture, **kwargs},
+            daemon = True
+        )
+        try:
             self.__thread.start()
+        except Exception as e:
+            self.__thread = None
+            self.log.error(f'capture thread start failed: {e}')
+            return False
+
+        self.__begin_event.wait()
+        if self.__begin_flag:
             self.log.info('capture thread started')
             return True
+        else:
+            self.__thread.join()
+            self.__thread = None
+            return False
 
     def end_thread(self, timeout: float = 3.0) -> bool:
         '''Request background capture to stop and wait for the thread to exit.'''
         if self.__thread is None:
             return True
         elif self.__thread.is_alive():
-            self.__event.set()
+            self.__end_event.set()
             self.__thread.join(timeout)
 
         if self.__thread.is_alive():

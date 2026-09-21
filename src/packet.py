@@ -6,8 +6,6 @@ from threading import Lock
 from time import time
 from typing import Optional
 
-log = logging.getLogger(__name__)
-
 class __Packet:
     def __init__(self):
         self.__lock     = Lock()
@@ -24,9 +22,13 @@ class __Input_Packet(__Packet):
         self.JPEG_QUALITY = JPEG_QUALITY
 
     def set(self, input: NDArray) -> None:
-        success, code_array = cv2.imencode('.jpg', input, [cv2.IMWRITE_JPEG_QUALITY, self.JPEG_QUALITY])
+        try:
+            success, code_array = cv2.imencode('.jpg', input, [cv2.IMWRITE_JPEG_QUALITY, self.JPEG_QUALITY])
+        except Exception as e:
+            logging.exception(f'JPEG encoding failed: {e}')
+            return
         if not success:
-            log.error('JPEG encoding failed')
+            logging.error('JPEG encoding failed')
             return
         with self._Packet__lock:
             self._Packet__frame_id += 1
@@ -40,9 +42,13 @@ class __Output_Packet(__Packet):
 
     def set(self, input: tuple[NDArray, NDArray, tuple[int, int, int, int]]) -> None:
         image, array, roi_info = input
-        success, code_array = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, self.JPEG_QUALITY])
+        try:
+            success, code_array = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, self.JPEG_QUALITY])
+        except Exception as e:
+            logging.exception(f'JPEG encoding failed: {e}')
+            return
         if not success:
-            log.error('JPEG encoding failed')
+            logging.error('JPEG encoding failed')
             return
         code_byte = code_array.tobytes()
         with self._Packet__lock:

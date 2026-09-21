@@ -14,6 +14,7 @@
       --muted: #728799;
       --accent: #02bcf1;
       --danger: #d66c73;
+      --warning: #d8ad62;
     }
 
     * {
@@ -110,6 +111,115 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .camera-panel {
+      padding: 0 12px 12px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+    }
+
+    .camera-state {
+      color: var(--muted);
+    }
+
+    .camera-state[data-state="running"] {
+      color: var(--accent);
+    }
+
+    .camera-state[data-state="paused"] {
+      color: var(--warning);
+    }
+
+    .camera-state[data-state="error"] {
+      color: var(--danger);
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px 10px;
+      padding-top: 5px;
+    }
+
+    .control-field {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+    }
+
+    .control-field select,
+    .control-field input,
+    .camera-actions button,
+    .apply-button {
+      min-width: 0;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: #0b151e;
+      color: var(--text);
+      font: inherit;
+    }
+
+    .control-field select,
+    .control-field input {
+      width: 100%;
+      padding: 0 9px;
+      outline: none;
+    }
+
+    .control-field select:focus,
+    .control-field input:focus {
+      border-color: var(--accent);
+    }
+
+    .camera-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 11px;
+    }
+
+    .camera-actions button,
+    .apply-button {
+      padding: 0 10px;
+      cursor: pointer;
+    }
+
+    .camera-actions button:hover:not(:disabled),
+    .apply-button:hover:not(:disabled) {
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .camera-actions button:disabled,
+    .apply-button:disabled,
+    .control-field select:disabled,
+    .control-field input:disabled {
+      cursor: default;
+      opacity: 0.45;
+    }
+
+    .apply-button {
+      width: 100%;
+      margin-top: 8px;
+      border-color: #12627a;
+      background: #083142;
+    }
+
+    .camera-message {
+      min-height: 18px;
+      padding-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .camera-message[data-state="error"] {
+      color: var(--danger);
+    }
+
     .visual {
       position: relative;
       display: grid;
@@ -176,7 +286,7 @@
       font-size: 12px;
     }
 
-    .stats b {
+    .stat-value {
       margin-left: 4px;
       color: var(--text);
       font-weight: 400;
@@ -194,6 +304,1038 @@
       }
 
     }
+
+    /* Modern dashboard layout */
+    :root {
+      --bg: #05080c;
+      --surface: rgb(13 20 28 / 88%);
+      --surface-raised: #101a24;
+      --line: #213242;
+      --text: #e5edf3;
+      --muted: #8193a2;
+      --accent: #20c8f4;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 15% -10%, rgb(24 87 112 / 22%), transparent 34rem),
+        radial-gradient(circle at 95% 5%, rgb(27 65 88 / 18%), transparent 30rem),
+        var(--bg);
+    }
+
+    header {
+      position: sticky;
+      z-index: 10;
+      top: 0;
+      height: 60px;
+      border-color: rgb(45 67 83 / 72%);
+      background: rgb(5 8 12 / 78%);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar {
+      width: min(1680px, 100%);
+      padding: 0 24px;
+    }
+
+    h1 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+    }
+
+    h1::before {
+      width: 9px;
+      height: 9px;
+      border-radius: 3px;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgb(32 200 244 / 75%);
+      content: "";
+    }
+
+    .status {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgb(10 16 23 / 75%);
+    }
+
+    main {
+      grid-template-columns: minmax(0, 1.55fr) minmax(380px, 0.85fr);
+      gap: 20px;
+      width: min(1680px, 100%);
+      padding: 20px 24px 32px;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 18px;
+      border: 1px solid rgb(38 57 72 / 82%);
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: 0 18px 50px rgb(0 0 0 / 18%);
+      backdrop-filter: blur(12px);
+    }
+
+    .panel-header {
+      height: auto;
+      min-height: 28px;
+      margin-bottom: 14px;
+    }
+
+    .panel-header h2 {
+      color: #f4f8fa;
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .camera-panel {
+      grid-column: 1 / -1;
+      padding: 18px 20px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgb(14 25 35 / 96%), rgb(9 16 23 / 94%));
+    }
+
+    .camera-state {
+      padding: 4px 9px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+
+    #camera-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 390px);
+      align-items: start;
+      gap: 18px;
+    }
+
+    .control-grid {
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 10px;
+      padding: 0;
+    }
+
+    .control-field {
+      gap: 6px;
+      color: #91a5b4;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+    }
+
+    .control-field select,
+    .control-field input,
+    .camera-actions button,
+    .apply-button {
+      height: 38px;
+      border-color: #293d4e;
+      border-radius: 8px;
+      background: #0a121a;
+      transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+    }
+
+    .control-field select:focus,
+    .control-field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgb(32 200 244 / 10%);
+    }
+
+    .camera-command-column {
+      display: grid;
+      gap: 8px;
+    }
+
+    .camera-actions {
+      gap: 8px;
+      margin: 0;
+    }
+
+    .camera-actions button:hover:not(:disabled),
+    .apply-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    #camera-toggle {
+      color: var(--accent);
+    }
+
+    #camera-stop {
+      color: #f08a92;
+    }
+
+    .apply-button {
+      height: 38px;
+      margin: 0;
+      border-color: #1683a2;
+      background: #0b5870;
+      color: #ecfbff;
+      font-weight: 400;
+    }
+
+    .camera-message {
+      min-height: 16px;
+      padding: 0 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .visual {
+      border: 1px solid rgb(30 45 57 / 65%);
+      border-radius: 10px;
+      background: #020406;
+    }
+
+    .image-panel {
+      align-self: start;
+    }
+
+    #camera-image {
+      border-radius: 9px;
+    }
+
+    .side-column {
+      gap: 20px;
+    }
+
+    #array-canvas {
+      width: 100%;
+      border-radius: 9px;
+    }
+
+    .histogram-wrap {
+      padding: 10px 12px 6px;
+      border-color: rgb(38 57 72 / 82%);
+      border-radius: 10px;
+      background: #081018;
+    }
+
+    .stats {
+      gap: 20px;
+      padding-top: 10px;
+    }
+
+    .stats span {
+      padding: 4px 7px;
+      border-radius: 6px;
+      background: rgb(4 9 14 / 55%);
+    }
+
+    @media (max-width: 1250px) {
+      #camera-form {
+        grid-template-columns: 1fr;
+      }
+
+      .camera-command-column {
+        grid-template-columns: minmax(300px, 420px) minmax(220px, 1fr);
+        align-items: start;
+      }
+
+      .apply-button {
+        grid-column: 2;
+        grid-row: 1;
+      }
+
+      .camera-message {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        padding: 0 16px;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+        padding: 14px 16px 24px;
+      }
+
+      .side-column {
+        grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+      }
+    }
+
+    @media (max-width: 700px) {
+      header {
+        height: 54px;
+      }
+
+      .control-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .camera-command-column,
+      .side-column {
+        grid-template-columns: 1fr;
+      }
+
+      .apply-button {
+        grid-column: auto;
+        grid-row: auto;
+      }
+
+      .panel,
+      .camera-panel {
+        padding: 14px;
+        border-radius: 11px;
+      }
+    }
+
+    /* Editorial workspace */
+    :root {
+      --page-width: 1440px;
+      --rail-width: 286px;
+      --page-gutter: clamp(18px, 3vw, 44px);
+      --section-gap: clamp(24px, 3vw, 38px);
+      --surface: #0c131b;
+      --surface-raised: #101923;
+      --line: #1c2a36;
+      --text: #e9f0f4;
+      --muted: #7f919f;
+      --accent: #28c7e8;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 64% -18%, rgb(40 199 232 / 9%), transparent 35rem),
+        #070b10;
+    }
+
+    header {
+      height: 68px;
+      border-color: rgb(37 51 63 / 72%);
+      background: rgb(7 11 16 / 82%);
+    }
+
+    .topbar {
+      width: min(var(--page-width), 100%);
+      padding-inline: var(--page-gutter);
+    }
+
+    h1 {
+      gap: 12px;
+      font-size: 15px;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      box-shadow: 0 0 16px rgb(40 199 232 / 48%);
+    }
+
+    .status {
+      padding: 7px 12px;
+      border-color: rgb(42 58 70 / 72%);
+      background: rgb(11 17 24 / 70%);
+    }
+
+    main,
+    main.dashboard {
+      display: grid;
+      grid-template-columns: var(--rail-width) minmax(0, 1fr);
+      align-items: start;
+      justify-content: center;
+      gap: var(--section-gap);
+      width: min(var(--page-width), 100%);
+      margin-inline: auto;
+      padding: 38px var(--page-gutter) 64px;
+    }
+
+    .control-rail {
+      position: sticky;
+      top: 106px;
+      min-width: 0;
+    }
+
+    .workspace {
+      display: grid;
+      gap: var(--section-gap);
+      min-width: 0;
+    }
+
+    .panel,
+    .camera-panel {
+      padding: 24px;
+      border: 1px solid rgb(35 50 63 / 76%);
+      border-radius: 16px;
+      background: rgb(12 19 27 / 90%);
+      box-shadow: 0 22px 60px rgb(0 0 0 / 14%);
+      backdrop-filter: blur(14px);
+    }
+
+    .panel-header {
+      min-height: 28px;
+      margin-bottom: 22px;
+    }
+
+    .panel-header h2 {
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.1em;
+    }
+
+    .camera-panel {
+      background: linear-gradient(155deg, rgb(16 26 36 / 96%), rgb(10 16 23 / 96%));
+    }
+
+    .camera-panel .panel-header {
+      align-items: flex-start;
+      margin-bottom: 28px;
+    }
+
+    .camera-state {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+
+    #camera-form {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+
+    .control-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 12px;
+      padding: 0;
+    }
+
+    .control-field:nth-child(1),
+    .control-field:nth-child(2),
+    .control-field:nth-child(5) {
+      grid-column: 1 / -1;
+    }
+
+    .slider-field {
+      grid-column: 1 / -1;
+    }
+
+    .range-control {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 104px;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .range-control input[type="range"] {
+      appearance: none;
+      width: 100%;
+      height: 20px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .range-control input[type="range"]:focus {
+      border: 0;
+      box-shadow: none;
+    }
+
+    .range-control input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 999px;
+      background: #263746;
+    }
+
+    .range-control input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      margin-top: -6px;
+      border: 3px solid #0c151e;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 1px rgb(40 199 232 / 42%);
+    }
+
+    .range-control input[type="range"]::-moz-range-track {
+      height: 4px;
+      border-radius: 999px;
+      background: #263746;
+    }
+
+    .range-control input[type="range"]::-moz-range-thumb {
+      width: 10px;
+      height: 10px;
+      border: 3px solid #0c151e;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 1px rgb(40 199 232 / 42%);
+    }
+
+    .control-field {
+      gap: 7px;
+      color: #8fa1af;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+    }
+
+    .control-field select,
+    .control-field input,
+    .camera-actions button,
+    .apply-button {
+      height: 42px;
+      border-color: #263746;
+      border-radius: 9px;
+      background: #091119;
+    }
+
+    .camera-command-column {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 11px;
+    }
+
+    .camera-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0;
+    }
+
+    .camera-actions[data-mode="start"] {
+      grid-template-columns: 1fr;
+    }
+
+    #camera-toggle {
+      border-color: rgb(40 199 232 / 46%);
+      background: rgb(40 199 232 / 8%);
+    }
+
+    #camera-stop {
+      background: rgb(7 12 18 / 74%);
+    }
+
+    .apply-button {
+      height: 42px;
+      margin: 3px 0 0;
+      border-color: #187f96;
+      background: #0d6175;
+    }
+
+    .camera-message {
+      min-height: 18px;
+      padding: 2px 1px 0;
+      overflow: visible;
+      line-height: 1.45;
+      white-space: normal;
+    }
+
+    .image-panel {
+      padding: 26px;
+    }
+
+    .visual {
+      border-color: rgb(31 45 56 / 72%);
+      border-radius: 11px;
+      background: #030609;
+    }
+
+    .image-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: clamp(300px, 40vh, 440px);
+    }
+
+    #camera-image {
+      width: auto;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 10px;
+      object-fit: contain;
+    }
+
+    #grid-canvas {
+      inset: auto;
+      width: auto;
+      height: auto;
+    }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      align-items: stretch;
+      gap: var(--section-gap);
+    }
+
+    .analytics-grid .panel {
+      height: 280px;
+      padding: 22px;
+    }
+
+    .analytics-grid .panel-header {
+      margin-bottom: 14px;
+    }
+
+    .array-panel {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .array-wrap {
+      height: 158px;
+    }
+
+    #array-canvas {
+      width: auto;
+      height: 100%;
+      max-width: 100%;
+      border-radius: 10px;
+    }
+
+    .histogram-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .histogram-wrap {
+      display: grid;
+      flex: 1;
+      place-items: center;
+      padding: 12px 14px 8px;
+      border-radius: 11px;
+      background: #081018;
+    }
+
+    .stats {
+      justify-content: flex-start;
+      gap: 8px;
+      padding-top: 12px;
+    }
+
+    .stats span {
+      flex: 1;
+      padding: 7px 8px;
+      text-align: center;
+    }
+
+    @media (max-width: 1080px) {
+      main,
+      main.dashboard {
+        grid-template-columns: 1fr;
+        padding-top: 26px;
+      }
+
+      .control-rail {
+        position: static;
+      }
+
+      #camera-form {
+        grid-template-columns: 1fr;
+        align-items: end;
+        gap: 24px;
+      }
+
+      .control-grid {
+        grid-template-columns: repeat(5, minmax(100px, 1fr));
+      }
+
+      .control-field:nth-child(1),
+      .control-field:nth-child(2),
+      .control-field:nth-child(5) {
+        grid-column: auto;
+      }
+
+      .camera-command-column {
+        grid-template-columns: 1fr;
+      }
+
+      .apply-button,
+      .camera-message {
+        grid-column: auto;
+        grid-row: auto;
+      }
+    }
+
+    @media (max-width: 780px) {
+      header {
+        height: 60px;
+      }
+
+      main,
+      main.dashboard {
+        gap: 22px;
+        padding: 20px 16px 40px;
+      }
+
+      .workspace {
+        gap: 22px;
+      }
+
+      #camera-form,
+      .analytics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .control-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .control-field:nth-child(1),
+      .control-field:nth-child(2),
+      .control-field:nth-child(5) {
+        grid-column: 1 / -1;
+      }
+
+      .panel,
+      .camera-panel,
+      .image-panel,
+      .analytics-grid .panel {
+        padding: 18px;
+        border-radius: 13px;
+      }
+
+      .panel-header {
+        margin-bottom: 16px;
+      }
+
+      .image-visual {
+        height: auto;
+        aspect-ratio: 4 / 3;
+      }
+
+      #camera-image {
+        width: 100%;
+        height: auto;
+      }
+
+      .analytics-grid .panel {
+        height: auto;
+      }
+
+      .array-wrap {
+        height: auto;
+        aspect-ratio: 1;
+      }
+
+      #array-canvas {
+        width: 100%;
+        height: auto;
+      }
+    }
+
+    /* Switchable preview workspace */
+    :root {
+      --rail-width: 390px;
+      --section-gap: 32px;
+    }
+
+    .control-rail {
+      display: grid;
+      gap: 22px;
+    }
+
+    .camera-panel {
+      padding: 22px;
+    }
+
+    .camera-panel .panel-header {
+      margin-bottom: 22px;
+    }
+
+    #camera-form {
+      gap: 22px;
+    }
+
+    .control-grid {
+      gap: 15px 12px;
+    }
+
+    .control-field:nth-child(1),
+    .control-field:nth-child(2) {
+      grid-column: auto;
+    }
+
+    .control-field:nth-child(5) {
+      grid-column: 1 / -1;
+    }
+
+    .camera-command-column {
+      gap: 10px;
+    }
+
+    .camera-actions {
+      display: flex;
+      justify-content: center;
+      gap: 36px;
+      position: relative;
+      margin-top: 30px;
+    }
+
+    .camera-actions::before {
+      position: absolute;
+      top: -20px;
+      right: 4px;
+      left: 4px;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgb(75 101 119 / 48%) 14%,
+        rgb(75 101 119 / 48%) 86%,
+        transparent
+      );
+      content: "";
+    }
+
+    .camera-actions button {
+      display: grid;
+      place-items: center;
+      flex: 0 0 44px;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 50%;
+    }
+
+    .action-icon {
+      display: block;
+      color: currentColor;
+    }
+
+    #camera-toggle[data-action="start"] .action-icon {
+      width: 0;
+      height: 0;
+      margin-left: 3px;
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+      border-left: 12px solid currentColor;
+    }
+
+    #camera-toggle[data-action="pause"] .action-icon {
+      width: 14px;
+      height: 15px;
+      background: linear-gradient(
+        90deg,
+        currentColor 0 4px,
+        transparent 4px 10px,
+        currentColor 10px 14px
+      );
+    }
+
+    #camera-toggle[data-action="pending"] .action-icon {
+      width: 15px;
+      height: 15px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: action-spin 700ms linear infinite;
+    }
+
+    #camera-stop .action-icon {
+      width: 13px;
+      height: 13px;
+      border-radius: 2px;
+      background: currentColor;
+    }
+
+    @keyframes action-spin {
+      to { transform: rotate(1turn); }
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .preview-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .preview-list .preview-panel {
+      display: flex;
+      flex-direction: column;
+      height: 180px;
+      padding: 12px;
+      border-radius: 13px;
+      cursor: pointer;
+      transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+    }
+
+    .preview-list .preview-panel:hover,
+    .preview-list .preview-panel:focus-visible {
+      border-color: rgb(40 199 232 / 55%);
+      background: #101a23;
+      outline: none;
+      transform: translateY(-2px);
+    }
+
+    .preview-list .panel-header {
+      min-height: 20px;
+      margin-bottom: 8px;
+    }
+
+    .preview-list .panel-header h2 {
+      font-size: 10px;
+    }
+
+    .preview-list .panel-meta,
+    .preview-list .stats {
+      display: none;
+    }
+
+    .preview-list .visual,
+    .preview-list .histogram-wrap {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      height: auto;
+      aspect-ratio: auto;
+    }
+
+    .preview-list .image-visual,
+    .preview-list .array-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-list #camera-image,
+    .preview-list #array-canvas {
+      width: auto;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .preview-list .histogram-wrap {
+      padding: 5px;
+    }
+
+    .preview-panel .visual,
+    .preview-panel .histogram-wrap {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .preview-stage {
+      min-width: 0;
+    }
+
+    .preview-stage > .preview-panel {
+      height: min(820px, calc(100vh - 144px));
+      min-height: 620px;
+      padding: 26px;
+    }
+
+    .preview-stage .panel-header {
+      margin-bottom: 22px;
+    }
+
+    .preview-stage .image-panel,
+    .preview-stage .histogram-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-stage > .image-panel {
+      height: min(820px, calc(100vh - 144px));
+      min-height: 620px;
+    }
+
+    .preview-stage .image-panel .image-visual {
+      flex: 1;
+      min-height: 0;
+      height: auto;
+    }
+
+    .preview-stage .image-panel #camera-image {
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .preview-stage .image-visual,
+    .preview-stage .histogram-wrap {
+      flex: 1;
+      min-height: 0;
+      height: auto;
+      aspect-ratio: auto;
+    }
+
+    .preview-stage .array-panel {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .preview-stage .array-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      height: auto;
+    }
+
+    .preview-stage #array-canvas {
+      width: min(100%, 680px);
+      height: auto;
+      max-height: 100%;
+    }
+
+    .preview-stage .stats {
+      justify-content: center;
+    }
+
+    @media (max-width: 1080px) {
+      .control-rail {
+        position: static;
+      }
+
+      .preview-stage > .preview-panel {
+        height: 70vh;
+        min-height: 520px;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .preview-list {
+        gap: 10px;
+      }
+
+      .preview-list .preview-panel {
+        height: 150px;
+        padding: 10px;
+      }
+
+      .preview-stage > .preview-panel {
+        height: 65vh;
+        min-height: 420px;
+      }
+    }
+
+    @media (min-width: 1081px) {
+      .preview-stage > .preview-panel {
+        height: 100%;
+        min-height: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -207,41 +1349,108 @@
     </div>
   </header>
 
-  <main>
-    <section class="panel">
-      <div class="panel-header">
-        <h2>Image</h2>
-        <span id="image-meta" class="panel-meta">—</span>
-      </div>
-      <div class="visual image-visual">
-        <img id="camera-image" alt="CCD 实时图像">
-        <canvas id="grid-canvas"></canvas>
-      </div>
-    </section>
-
-    <div class="side-column">
-      <section class="panel">
+  <main class="dashboard">
+    <aside class="control-rail">
+      <section class="panel camera-panel">
         <div class="panel-header">
-          <h2>Array</h2>
-          <span id="array-meta" class="panel-meta">—</span>
+          <h2>Camera Control</h2>
+          <span id="camera-state" class="panel-meta camera-state" data-state="loading">检查中</span>
         </div>
-        <div class="visual array-wrap">
-          <canvas id="array-canvas" width="32" height="32"></canvas>
-        </div>
-        <div class="stats">
-          <span>Min <b id="array-min">—</b></span>
-          <span>Mean <b id="array-mean">—</b></span>
-          <span>Max <b id="array-max">—</b></span>
-        </div>
+
+        <form id="camera-form">
+          <div class="control-grid">
+            <label class="control-field">
+              Format
+              <select id="camera-format" name="format" disabled>
+                <option value="BayerRG8">BayerRG8</option>
+                <option value="BayerRG12">BayerRG12</option>
+              </select>
+            </label>
+
+            <label class="control-field">
+              Frame rate (fps)
+              <input id="camera-frame-rate" name="frame_rate" type="number" min="0.01" step="0.01" required disabled>
+            </label>
+
+            <label class="control-field slider-field">
+              <span>Height</span>
+              <span class="range-control">
+                <input id="camera-height-range" type="range" min="2304" max="3072" step="16" aria-label="Height slider" disabled>
+                <input id="camera-height" name="height" type="number" min="2304" max="3072" step="16" required disabled>
+              </span>
+            </label>
+
+            <label class="control-field slider-field">
+              <span>Width</span>
+              <span class="range-control">
+                <input id="camera-width-range" type="range" min="3072" max="4096" step="16" aria-label="Width slider" disabled>
+                <input id="camera-width" name="width" type="number" min="3072" max="4096" step="16" required disabled>
+              </span>
+            </label>
+
+            <label class="control-field slider-field">
+              <span>Exposure (μs)</span>
+              <span class="range-control">
+                <input id="camera-exposure-range" type="range" min="0" max="1000" step="1" aria-label="Exposure slider" disabled>
+                <input id="camera-exposure" name="exposure" type="number" min="37" max="1000000" step="any" required disabled>
+              </span>
+            </label>
+          </div>
+
+          <div class="camera-command-column">
+            <button id="camera-apply" class="apply-button" type="submit" disabled>应用参数</button>
+            <div class="camera-actions" data-mode="start">
+              <button id="camera-toggle" type="button" data-action="start" aria-label="启动" title="启动" disabled>
+                <span class="action-icon" aria-hidden="true"></span>
+                <span id="camera-toggle-label" class="visually-hidden">启动</span>
+              </button>
+              <button id="camera-stop" type="button" aria-label="停止" title="停止" disabled hidden>
+                <span class="action-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">停止</span>
+              </button>
+            </div>
+            <p id="camera-message" class="camera-message" aria-live="polite"></p>
+          </div>
+        </form>
       </section>
 
-      <section class="panel">
+      <div id="preview-list" class="preview-list" aria-label="其他视图">
+        <section class="panel preview-panel array-panel" data-preview="array">
+          <div class="panel-header">
+            <h2>Array</h2>
+            <span id="array-meta" class="panel-meta">—</span>
+          </div>
+          <div class="visual array-wrap">
+            <canvas id="array-canvas" width="32" height="32"></canvas>
+          </div>
+          <div class="stats">
+            <span>Min <span id="array-min" class="stat-value">—</span></span>
+            <span>Mean <span id="array-mean" class="stat-value">—</span></span>
+            <span>Max <span id="array-max" class="stat-value">—</span></span>
+          </div>
+        </section>
+
+        <section class="panel preview-panel histogram-panel" data-preview="histogram">
+          <div class="panel-header">
+            <h2>Histogram</h2>
+            <span id="histogram-meta" class="panel-meta">64 bins · 0–255</span>
+          </div>
+          <div class="histogram-wrap">
+            <canvas id="histogram-canvas" width="640" height="210"></canvas>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <div id="preview-stage" class="preview-stage" aria-live="polite">
+      <section class="panel preview-panel image-panel" data-preview="image">
         <div class="panel-header">
-          <h2>Histogram</h2>
-          <span id="histogram-meta" class="panel-meta">64 bins · 0–255</span>
+          <h2>Image</h2>
+          <span id="image-meta" class="panel-meta">—</span>
         </div>
-        <div class="histogram-wrap">
-          <canvas id="histogram-canvas" width="640" height="210"></canvas>
+        <div class="visual image-visual">
+          <img id="camera-image" alt="CCD 实时图像">
+          <canvas id="grid-canvas"></canvas>
         </div>
       </section>
     </div>
@@ -257,13 +1466,270 @@
     const histogramContext = histogramCanvas.getContext('2d');
     const status = document.querySelector('#status');
     const statusText = document.querySelector('#status-text');
+    const cameraForm = document.querySelector('#camera-form');
+    const cameraStateText = document.querySelector('#camera-state');
+    const cameraMessage = document.querySelector('#camera-message');
+    const cameraFormat = document.querySelector('#camera-format');
+    const cameraHeight = document.querySelector('#camera-height');
+    const cameraHeightRange = document.querySelector('#camera-height-range');
+    const cameraWidth = document.querySelector('#camera-width');
+    const cameraWidthRange = document.querySelector('#camera-width-range');
+    const cameraExposure = document.querySelector('#camera-exposure');
+    const cameraExposureRange = document.querySelector('#camera-exposure-range');
+    const cameraFrameRate = document.querySelector('#camera-frame-rate');
+    const cameraActions = document.querySelector('.camera-actions');
+    const cameraToggle = document.querySelector('#camera-toggle');
+    const cameraToggleLabel = document.querySelector('#camera-toggle-label');
+    const cameraStop = document.querySelector('#camera-stop');
+    const cameraApply = document.querySelector('#camera-apply');
+    const controlRail = document.querySelector('.control-rail');
+    const previewList = document.querySelector('#preview-list');
+    const previewStage = document.querySelector('#preview-stage');
+    const cameraFields = [
+      cameraFormat,
+      cameraHeight,
+      cameraHeightRange,
+      cameraWidth,
+      cameraWidthRange,
+      cameraExposure,
+      cameraExposureRange,
+      cameraFrameRate,
+    ];
+    const cameraSliders = [
+      { number: cameraHeight, range: cameraHeightRange, scale: 'linear' },
+      { number: cameraWidth, range: cameraWidthRange, scale: 'linear' },
+      { number: cameraExposure, range: cameraExposureRange, scale: 'log' },
+    ];
     let objectUrl = null;
     let grid = null;
+    let cameraStatus = null;
+    let cameraPending = false;
+    let cameraDirty = false;
+    let cameraRevision = 0;
+
+    function syncPreviewStageHeight() {
+      if (window.matchMedia('(min-width: 1081px)').matches) {
+        previewStage.style.height = `${controlRail.offsetHeight}px`;
+      } else {
+        previewStage.style.removeProperty('height');
+      }
+    }
+
+    new ResizeObserver(syncPreviewStageHeight).observe(controlRail);
+    window.addEventListener('resize', syncPreviewStageHeight);
+    syncPreviewStageHeight();
 
     function setConnectionState(connected, text = connected ? '数据已连接' : '等待数据') {
       status.dataset.state = connected ? 'connected' : 'disconnected';
       statusText.textContent = text;
     }
+
+    function cameraErrorMessage(payload, fallback) {
+      const detail = payload?.detail;
+      if (typeof detail === 'string') return detail;
+      if (Array.isArray(detail)) {
+        return detail.map((item) => item.msg || String(item)).join('; ');
+      }
+      return fallback;
+    }
+
+    async function cameraRequest(path, options = {}) {
+      const response = await fetch(path, {
+        cache: 'no-store',
+        ...options,
+      });
+      const contentType = response.headers.get('Content-Type') || '';
+      let payload = null;
+
+      if (contentType.includes('application/json')) {
+        payload = await response.json();
+      } else {
+        const text = await response.text();
+        payload = text ? { detail: text } : null;
+      }
+
+      if (!response.ok) {
+        throw new Error(cameraErrorMessage(payload, `请求失败 (${response.status})`));
+      }
+      return payload;
+    }
+
+    function setCameraMessage(text = '', error = false) {
+      cameraMessage.textContent = text;
+      cameraMessage.dataset.state = error ? 'error' : 'normal';
+    }
+
+    function syncRangeFromNumber(control) {
+      const value = Number(control.number.value);
+      if (!Number.isFinite(value)) return;
+
+      const minimum = Number(control.number.min);
+      const maximum = Number(control.number.max);
+      const clamped = Math.max(minimum, Math.min(maximum, value));
+      if (control.scale === 'log') {
+        const ratio = Math.log(clamped / minimum) / Math.log(maximum / minimum);
+        const rangeMinimum = Number(control.range.min);
+        const rangeMaximum = Number(control.range.max);
+        control.range.value = rangeMinimum + ratio * (rangeMaximum - rangeMinimum);
+      } else {
+        control.range.value = clamped;
+      }
+    }
+
+    function syncNumberFromRange(control) {
+      if (control.scale === 'log') {
+        const rangeMinimum = Number(control.range.min);
+        const rangeMaximum = Number(control.range.max);
+        const ratio = (Number(control.range.value) - rangeMinimum) /
+          (rangeMaximum - rangeMinimum);
+        const minimum = Number(control.number.min);
+        const maximum = Number(control.number.max);
+        control.number.value = Math.round(minimum * (maximum / minimum) ** ratio);
+      } else {
+        control.number.value = control.range.value;
+      }
+    }
+
+    for (const control of cameraSliders) {
+      control.range.addEventListener('input', () => syncNumberFromRange(control));
+      control.number.addEventListener('input', () => syncRangeFromNumber(control));
+    }
+
+    function normalizeFrameRate() {
+      if (cameraFrameRate.value.trim() === '') return;
+      const value = Number(cameraFrameRate.value);
+      if (Number.isFinite(value)) cameraFrameRate.value = value.toFixed(2);
+    }
+
+    cameraFrameRate.addEventListener('change', normalizeFrameRate);
+
+    function updateCameraControls() {
+      const ready = cameraStatus !== null;
+      for (const field of cameraFields) {
+        field.disabled = !ready || cameraPending;
+      }
+      if (ready) {
+        const toggleLabel = cameraPending
+          ? '处理中…'
+          : cameraStatus.running
+            ? '暂停'
+            : cameraStatus.opened
+              ? '继续'
+              : '启动';
+        cameraToggle.dataset.action = cameraPending
+          ? 'pending'
+          : cameraStatus.running ? 'pause' : 'start';
+        cameraToggleLabel.textContent = toggleLabel;
+        cameraToggle.setAttribute('aria-label', toggleLabel);
+        cameraToggle.title = toggleLabel;
+      }
+      cameraToggle.disabled = !ready || cameraPending;
+      cameraActions.dataset.mode = ready && cameraStatus.opened ? 'session' : 'start';
+      cameraStop.hidden = !ready || !cameraStatus.opened;
+      cameraStop.disabled = !ready || cameraPending || !cameraStatus.opened;
+      cameraApply.disabled = !ready || cameraPending || !cameraDirty;
+    }
+
+    function renderCameraStatus(nextStatus, syncForm = true) {
+      cameraStatus = nextStatus;
+
+      if (nextStatus.running) {
+        cameraStateText.dataset.state = 'running';
+        cameraStateText.textContent = '运行中';
+      } else if (nextStatus.opened) {
+        cameraStateText.dataset.state = 'paused';
+        cameraStateText.textContent = '已暂停';
+      } else {
+        cameraStateText.dataset.state = 'closed';
+        cameraStateText.textContent = '已结束';
+      }
+
+      if (syncForm) {
+        cameraFormat.value = nextStatus.format;
+        [cameraHeight.value, cameraWidth.value] = nextStatus.size;
+        cameraExposure.value = nextStatus.exposure;
+        cameraFrameRate.value = Number(nextStatus.frame_rate).toFixed(2);
+        for (const control of cameraSliders) syncRangeFromNumber(control);
+        cameraDirty = false;
+      }
+      updateCameraControls();
+    }
+
+    function renderCameraError(error) {
+      cameraStateText.dataset.state = 'error';
+      cameraStateText.textContent = '状态异常';
+      setCameraMessage(error.message || String(error), true);
+    }
+
+    async function refreshCameraStatus(showError = false) {
+      if (cameraPending) return;
+      const revision = cameraRevision;
+
+      try {
+        const nextStatus = await cameraRequest('/api/camera');
+        if (revision !== cameraRevision || cameraPending) return;
+        renderCameraStatus(nextStatus, !cameraDirty);
+      } catch (error) {
+        if (revision !== cameraRevision || cameraPending) return;
+        if (showError) renderCameraError(error);
+      }
+    }
+
+    async function runCameraAction(path, options = {}) {
+      cameraRevision += 1;
+      cameraPending = true;
+      setCameraMessage('正在执行…');
+      updateCameraControls();
+
+      try {
+        const nextStatus = await cameraRequest(path, options);
+        renderCameraStatus(nextStatus, true);
+        setCameraMessage('操作成功');
+      } catch (error) {
+        try {
+          const nextStatus = await cameraRequest('/api/camera');
+          renderCameraStatus(nextStatus, false);
+          setCameraMessage(error.message || String(error), true);
+        } catch {
+          renderCameraError(error);
+        }
+      } finally {
+        cameraPending = false;
+        updateCameraControls();
+      }
+    }
+
+    cameraForm.addEventListener('input', () => {
+      cameraDirty = true;
+      setCameraMessage('参数尚未应用');
+      updateCameraControls();
+    });
+
+    cameraForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      normalizeFrameRate();
+      if (!cameraForm.reportValidity()) return;
+
+      runCameraAction('/api/camera/config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          format: cameraFormat.value,
+          size: [Number(cameraHeight.value), Number(cameraWidth.value)],
+          exposure: Number(cameraExposure.value),
+          frame_rate: Number(cameraFrameRate.value),
+        }),
+      });
+    });
+
+    cameraToggle.addEventListener('click', () => {
+      if (!cameraStatus) return;
+      const action = cameraStatus.running ? 'pause' : 'start';
+      runCameraAction(`/api/camera/${action}`, { method: 'POST' });
+    });
+    cameraStop.addEventListener('click', () => {
+      runCameraAction('/api/camera/stop', { method: 'POST' });
+    });
 
     function setImage(source) {
       if (!source) return;
@@ -287,6 +1753,10 @@
       const displayHeight = cameraImage.clientHeight;
       const displayWidth = cameraImage.clientWidth;
       const pixelRatio = window.devicePixelRatio || 1;
+      gridCanvas.style.left = `${cameraImage.offsetLeft}px`;
+      gridCanvas.style.top = `${cameraImage.offsetTop}px`;
+      gridCanvas.style.width = `${displayWidth}px`;
+      gridCanvas.style.height = `${displayHeight}px`;
       gridCanvas.height = Math.round(displayHeight * pixelRatio);
       gridCanvas.width = Math.round(displayWidth * pixelRatio);
       gridContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
@@ -320,35 +1790,103 @@
     cameraImage.addEventListener('load', drawGrid);
     new ResizeObserver(drawGrid).observe(cameraImage);
 
-    function heatColor(value) {
-      const x = Math.max(0, Math.min(1, value / 255));
-      const saturation = 28 - 10 * x;
-      const lightness = 6 + 86 * x;
-      return `hsl(202 ${saturation}% ${lightness}%)`;
-    }
-
-    function setHistogram(values) {
-      const binCount = 64;
-      const counts = new Uint32Array(binCount);
-
-      for (const value of values) {
-        const normalized = Math.max(0, Math.min(255, Number(value)));
-        const index = Math.min(binCount - 1, Math.floor(normalized / 256 * binCount));
-        counts[index] += 1;
+    function syncPreviewPanels() {
+      for (const panel of previewList.querySelectorAll('.preview-panel')) {
+        const title = panel.querySelector('h2')?.textContent || '视图';
+        panel.tabIndex = 0;
+        panel.setAttribute('role', 'button');
+        panel.setAttribute('aria-label', `在主区域预览 ${title}`);
       }
 
-      const width = histogramCanvas.width;
-      const height = histogramCanvas.height;
-      const plot = { left: 42, right: 12, top: 15, bottom: 30 };
-      const plotWidth = width - plot.left - plot.right;
-      const plotHeight = height - plot.top - plot.bottom;
-      const maxCount = Math.max(1, ...counts);
+      const activePanel = previewStage.querySelector('.preview-panel');
+      activePanel?.removeAttribute('tabindex');
+      activePanel?.removeAttribute('role');
+      activePanel?.removeAttribute('aria-label');
+    }
 
-      histogramContext.clearRect(0, 0, width, height);
-      histogramContext.fillStyle = '#080f16';
-      histogramContext.fillRect(0, 0, width, height);
+    function swapPreview(panel) {
+      const activePanel = previewStage.querySelector('.preview-panel');
+      if (!activePanel || panel.parentElement !== previewList) return;
 
-      histogramContext.strokeStyle = 'rgb(255 255 255 / 6%)';
+      const placeholder = document.createComment('preview position');
+      previewList.replaceChild(placeholder, panel);
+      previewStage.replaceChild(panel, activePanel);
+      previewList.replaceChild(activePanel, placeholder);
+      syncPreviewPanels();
+      window.requestAnimationFrame(() => {
+        drawGrid();
+        drawHistogram();
+      });
+    }
+
+    previewList.addEventListener('click', (event) => {
+      const panel = event.target.closest('.preview-panel');
+      if (panel) swapPreview(panel);
+    });
+
+    previewList.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const panel = event.target.closest('.preview-panel');
+      if (!panel) return;
+      event.preventDefault();
+      swapPreview(panel);
+    });
+
+    syncPreviewPanels();
+
+    const parulaColors = [
+      [53, 42, 135],
+      [15, 92, 164],
+      [18, 125, 165],
+      [7, 156, 154],
+      [21, 177, 126],
+      [89, 189, 88],
+      [165, 190, 51],
+      [225, 185, 39],
+      [249, 251, 14],
+    ];
+
+    function heatColor(value) {
+      const normalized = Math.max(0, Math.min(1, Number(value) / 255));
+      const position = normalized * (parulaColors.length - 1);
+      const index = Math.min(parulaColors.length - 2, Math.floor(position));
+      const ratio = position - index;
+      const start = parulaColors[index];
+      const end = parulaColors[index + 1];
+      const color = start.map((channel, channelIndex) =>
+        Math.round(channel + (end[channelIndex] - channel) * ratio)
+      );
+      return `rgb(${color[0]} ${color[1]} ${color[2]})`;
+    }
+
+    const histogramBinCount = 64;
+    let histogramCounts = new Uint32Array(histogramBinCount);
+
+    function drawHistogram() {
+      const bounds = histogramCanvas.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+
+      const pixelRatio = window.devicePixelRatio || 1;
+      const pixelWidth = Math.max(1, Math.round(bounds.width * pixelRatio));
+      const pixelHeight = Math.max(1, Math.round(bounds.height * pixelRatio));
+      if (histogramCanvas.width !== pixelWidth) histogramCanvas.width = pixelWidth;
+      if (histogramCanvas.height !== pixelHeight) histogramCanvas.height = pixelHeight;
+
+      const width = bounds.width;
+      const height = bounds.height;
+      const compact = width < 260;
+      const plot = compact
+        ? { left: 10, right: 5, top: 7, bottom: 13 }
+        : { left: 48, right: 16, top: 20, bottom: 34 };
+      const plotWidth = Math.max(1, width - plot.left - plot.right);
+      const plotHeight = Math.max(1, height - plot.top - plot.bottom);
+      const maxCount = Math.max(1, ...histogramCounts);
+
+      histogramContext.setTransform(1, 0, 0, 1, 0, 0);
+      histogramContext.clearRect(0, 0, pixelWidth, pixelHeight);
+      histogramContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+      histogramContext.strokeStyle = 'rgb(255 255 255 / 7%)';
       histogramContext.lineWidth = 1;
       for (let line = 0; line <= 4; line += 1) {
         const y = plot.top + plotHeight * line / 4 + 0.5;
@@ -358,11 +1896,10 @@
         histogramContext.stroke();
       }
 
-      const gap = 2;
-      const barWidth = plotWidth / binCount;
+      const gap = compact ? 1 : 2;
+      const barWidth = plotWidth / histogramBinCount;
       histogramContext.fillStyle = '#029dce';
-
-      counts.forEach((count, index) => {
+      histogramCounts.forEach((count, index) => {
         const barHeight = count / maxCount * plotHeight;
         histogramContext.fillRect(
           plot.left + index * barWidth + gap / 2,
@@ -372,21 +1909,40 @@
         );
       });
 
-      histogramContext.fillStyle = '#728799';
-      histogramContext.font = '12px system-ui, sans-serif';
-      histogramContext.textBaseline = 'top';
-      histogramContext.textAlign = 'left';
-      histogramContext.fillText('0', plot.left, height - 21);
-      histogramContext.textAlign = 'center';
-      histogramContext.fillText('128', plot.left + plotWidth / 2, height - 21);
-      histogramContext.textAlign = 'right';
-      histogramContext.fillText('255', width - plot.right, height - 21);
-      histogramContext.textBaseline = 'middle';
-      histogramContext.fillText(String(maxCount), plot.left - 8, plot.top);
+      if (!compact) {
+        histogramContext.fillStyle = '#8294a2';
+        histogramContext.font = '12px system-ui, sans-serif';
+        histogramContext.textBaseline = 'top';
+        histogramContext.textAlign = 'left';
+        histogramContext.fillText('0', plot.left, height - 22);
+        histogramContext.textAlign = 'center';
+        histogramContext.fillText('128', plot.left + plotWidth / 2, height - 22);
+        histogramContext.textAlign = 'right';
+        histogramContext.fillText('255', width - plot.right, height - 22);
+        histogramContext.textBaseline = 'middle';
+        histogramContext.fillText(String(maxCount), plot.left - 8, plot.top);
+      }
+    }
+
+    function setHistogram(values) {
+      histogramCounts = new Uint32Array(histogramBinCount);
+      for (const value of values) {
+        const normalized = Math.max(0, Math.min(255, Number(value)));
+        const index = Math.min(
+          histogramBinCount - 1,
+          Math.floor(normalized / 256 * histogramBinCount),
+        );
+        histogramCounts[index] += 1;
+      }
 
       document.querySelector('#histogram-meta').textContent =
-        `${binCount} bins · ${values.length} samples`;
+        `${histogramBinCount} bins · ${values.length} samples`;
+      drawHistogram();
     }
+
+    new ResizeObserver(() => {
+      window.requestAnimationFrame(drawHistogram);
+    }).observe(histogramCanvas);
 
     function setArray(values, height = null, width = null) {
       if (!values || values.length === 0) return;
@@ -632,8 +2188,13 @@
 
     if (location.protocol === 'file:') {
       showDemo();
+      cameraStateText.dataset.state = 'closed';
+      cameraStateText.textContent = '仅服务器可用';
+      setCameraMessage('请通过服务地址打开此页面');
     } else {
       connect();
+      refreshCameraStatus(true);
+      window.setInterval(refreshCameraStatus, 3000);
     }
   </script>
 </body>

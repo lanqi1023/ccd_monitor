@@ -50,11 +50,15 @@
           { cache: 'no-store' },
         );
 
-        if (response.status === 204) {
+        if (response.status === 404) {
+          // 图片尚未生成，这是正常的等待状态。
+          delay = 1000;
+        } else if (response.status === 204) {
           // 当前图片没有更新。
         } else if (response.ok) {
-          const nextFrameId = Number(response.headers.get('X-Frame-Id'));
-          if (!Number.isInteger(nextFrameId)) {
+          const frameIdHeader = response.headers.get('X-Frame-Id');
+          const nextFrameId = Number(frameIdHeader);
+          if (frameIdHeader === null || !Number.isInteger(nextFrameId)) {
             throw new Error('Invalid frame id');
           }
 
@@ -80,6 +84,12 @@
     }
 
     poll();
+
+    window.addEventListener('pagehide', () => {
+      if (imageUrl !== null) {
+        URL.revokeObjectURL(imageUrl);
+      }
+    });
   </script>
 </body>
 </html>

@@ -1,32 +1,70 @@
-from ccd_wrapper import CCD_Wrapper
-from main import process, main_target
+from ccd_wrapper import Config, Status, ccd_wrapper
+from main import main_target
 from packet import input, weight, output
 
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.responses import Response, FileResponse
 from pathlib import Path
 from threading import Thread
 from typing import Optional
 
-ccd_wrapper = CCD_Wrapper(process = process, publish = output.set)
-
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     main_thread = Thread(target = main_target, daemon = True)
-    ccd_wrapper.start()
     main_thread.start()
+    try:
+        ccd_wrapper.start()
+    except RuntimeError:
+        logging.exception('camera startup failed')
     try:
         yield
     finally:
-        ccd_wrapper.stop()
+        try:
+            ccd_wrapper.stop()
+        except RuntimeError:
+            logging.exception('camera shutdown failed')
 app = FastAPI(lifespan = lifespan)
 
 @app.get('/')
 async def index():
     return FileResponse(Path(__file__).parent.parent / 'html/index.html')
+
+@app.get('/api/camera', response_model = Status)
+def camera_status():
+    return ccd_wrapper.status()
+
+@app.post('/api/camera/start', response_model = Status)
+def camera_start():
+    try:
+        return ccd_wrapper.start()
+    except RuntimeError as e:
+        raise HTTPException(status_code = 503, detail = str(e)) from e
+
+@app.post('/api/camera/pause', response_model = Status)
+def camera_pause():
+    try:
+        return ccd_wrapper.pause()
+    except RuntimeError as e:
+        raise HTTPException(status_code = 409, detail = str(e)) from e
+
+@app.post('/api/camera/stop', response_model = Status)
+def camera_stop():
+    try:
+        return ccd_wrapper.stop()
+    except RuntimeError as e:
+        raise HTTPException(status_code = 409, detail = str(e)) from e
+
+@app.patch('/api/camera/config', response_model = Status)
+def camera_update(config: Config):
+    try:
+        return ccd_wrapper.update(config)
+    except (TypeError, ValueError) as e:
+        raise HTTPException(status_code = 422, detail = str(e)) from e
+    except RuntimeError as e:
+        raise HTTPException(status_code = 409, detail = str(e)) from e
 
 @app.websocket('/ws')
 async def websocket_endpoint(websocket: WebSocket):
