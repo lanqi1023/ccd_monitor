@@ -167,7 +167,7 @@ class CCD:
                 self.__camera.data_stream[0].q_buf(buf)
         return image
 
-    def get_generator(self, N: Optional[int] = None, flush: bool = False) -> Generator[NDArray[np.uint8 | np.uint16]]:
+    def get_generator(self, N: Optional[int] = None, flush: bool = False) -> Generator[NDArray[np.uint8 | np.uint16], None, None]:
         '''Yield ``N`` processed frames, or indefinitely when ``N`` is ``None``.
 
         ``flush`` discards queued frames before each capture.
