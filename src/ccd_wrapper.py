@@ -6,7 +6,8 @@ from math import isfinite
 from numpy.typing import NDArray
 from threading import RLock
 from time import monotonic
-from typing import Callable, Literal, TypedDict
+from typing import Callable, Literal
+from typing_extensions import TypedDict
 
 class Status(TypedDict):
     opened:     bool
