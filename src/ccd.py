@@ -16,7 +16,7 @@ import logging
 import numpy as np
 from numpy.typing import NDArray
 from threading import Thread, Event, Lock
-from typing import Callable, Iterator, Optional
+from typing import Callable, Iterator
 
 class CCD:
     '''
@@ -59,17 +59,17 @@ class CCD:
         ccd.process    = CCD.PROCESS_RG8 # or others
     '''
 
-    PROCESS_NONE = lambda bayer: bayer
-    PROCESS_RG8  = lambda bayer: cv2.cvtColor(bayer, cv2.COLOR_BAYER_RGGB2BGR)
-    PROCESS_RG12 = lambda bayer: cv2.cvtColor((bayer >> 4).astype(np.uint8), cv2.COLOR_BAYER_RGGB2BGR)
+    PROCESS_NONE      = lambda bayer: bayer if (bayer.dtype == np.uint8) else (bayer >> 4).astype(np.uint8)
+    PROCESS_RG8       = lambda bayer: cv2.cvtColor(bayer, cv2.COLOR_BAYER_RGGB2BGR)
+    PROCESS_RG12      = lambda bayer: cv2.cvtColor((bayer >> 4).astype(np.uint8), cv2.COLOR_BAYER_RGGB2BGR)
     PROCESS_RG8_GRAY  = lambda bayer: cv2.cvtColor(bayer, cv2.COLOR_BAYER_RGGB2GRAY)
     PROCESS_RG12_GRAY = lambda bayer: cv2.cvtColor((bayer >> 4).astype(np.uint8), cv2.COLOR_BAYER_RGGB2GRAY)
 
     def __init__(self):
         self.process: Callable[[NDArray], NDArray] = CCD.PROCESS_RG8
-        self.__manager: Optional[gxipy.DeviceManager]  = None
-        self.__camera:  Optional[gxipy.Device]         = None
-        self.__feature: Optional[gxipy.FeatureControl] = None
+        self.__manager: gxipy.DeviceManager  | None = None
+        self.__camera:  gxipy.Device         | None = None
+        self.__feature: gxipy.FeatureControl | None = None
         self.__thread:       Thread  = None
         self.__begin_event:  Event   = Event()
         self.__end_event:    Event   = Event()
@@ -122,7 +122,7 @@ class CCD:
         return success
 
     @property
-    def format(self) -> Optional[str]:
+    def format(self) -> str | None:
         '''Pixel format, ``BayerRG8`` or ``BayerRG12``.'''
         try:
             return self.__feature.get_enum_feature('PixelFormat').get()[1]
@@ -135,10 +135,10 @@ class CCD:
         try:
             self.__feature.get_enum_feature('PixelFormat').set(format)
         except Exception as e:
-            self.log.error(f'pixel format update failed: requested={format}, error={e}')
+            raise RuntimeError(f'set format to {format} failed') from e
 
     @property
-    def size(self) -> Optional[tuple[int, int]]:
+    def size(self) -> tuple[int, int] | None:
         '''Image size ``(height, width)``, 16 ≤ height ≤ 3072, 16 ≤ width ≤ 4096; both must be divisible by 16.
         '''
         try:
@@ -153,10 +153,10 @@ class CCD:
             self.__feature.get_int_feature('Height').set(size[0])
             self.__feature.get_int_feature('Width').set(size[1])
         except Exception as e:
-            self.log.error(f'camera size update failed: requested={size}, error={e}')
+            raise RuntimeError(f'set size to {size} failed') from e
 
     @property
-    def exposure(self) -> Optional[float]:
+    def exposure(self) -> float | None:
         '''Exposure time in microseconds, 37us ≤ exposure ≤ 1,000,000us.'''
         try:
             return self.__feature.get_float_feature('ExposureTime').get()
@@ -169,10 +169,10 @@ class CCD:
         try:
             self.__feature.get_float_feature('ExposureTime').set(float(exposure))
         except Exception as e:
-            self.log.error(f'exposure update failed: requested={exposure}us, error={e}')
+            raise RuntimeError(f'set exposure to {exposure} failed') from e
 
     @property
-    def frame_rate(self) -> Optional[float]:
+    def frame_rate(self) -> float | None:
         '''Current acquisition frame rate.'''
         try:
             return self.__feature.get_float_feature('CurrentAcquisitionFrameRate').get()
@@ -186,9 +186,9 @@ class CCD:
             self.__feature.get_enum_feature('AcquisitionFrameRateMode').set('On')
             self.__feature.get_float_feature('AcquisitionFrameRate').set(float(frame_rate))
         except Exception as e:
-            self.log.error(f'frame rate update failed: requested={frame_rate}, error={e}')
+            raise RuntimeError(f'set frame_rate to {frame_rate} failed') from e
 
-    def __grab(self) -> Optional[NDArray[np.uint8 | np.uint16]]:
+    def __grab(self) -> NDArray[np.uint8 | np.uint16] | None:
         buf = None
         try:
             buf = self.__camera.data_stream[0].dq_buf(timeout = 1000)
@@ -201,7 +201,7 @@ class CCD:
                 self.__camera.data_stream[0].q_buf(buf)
         return image
 
-    def get_iterator(self, N: Optional[int] = None, flush: bool = False) -> Iterator[NDArray[np.uint8 | np.uint16]]:
+    def get_iterator(self, N: int | None = None, flush: bool = False) -> Iterator[NDArray[np.uint8 | np.uint16]]:
         '''Yield ``N`` processed frames, or indefinitely when ``N`` is ``None``.
 
         ``flush`` discards queued frames before each capture.
@@ -230,7 +230,7 @@ class CCD:
             finally:
                 self.__capture_lock.release()
 
-    def __target(self, on_capture: Optional[Callable[..., None]], **kwargs) -> None:
+    def __target(self, on_capture: Callable[..., None] | None, **kwargs) -> None:
         lock_flag   = False
         stream_flag = False
         try:
@@ -264,7 +264,7 @@ class CCD:
                     self.__capture_lock.release()
 
     @property
-    def thread_image(self) -> Optional[NDArray]:
+    def thread_image(self) -> NDArray | None:
         '''Return the latest processed frame published by the capture thread.'''
         with self.__image_lock:
             return self.__image
@@ -274,7 +274,7 @@ class CCD:
         '''Whether the background capture thread is currently alive.'''
         return self.__thread is not None and self.__thread.is_alive()
 
-    def begin_thread(self, on_capture: Optional[Callable[..., None]] = None, **kwargs) -> bool:
+    def begin_thread(self, on_capture: Callable[..., None] | None = None, **kwargs) -> bool:
         '''Start background capture, optionally invoking ``on_capture`` per frame.'''
         if self.__thread is not None:
             if self.__thread.is_alive():

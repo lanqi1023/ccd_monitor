@@ -9,13 +9,13 @@ from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.responses import Response, FileResponse
 from pathlib import Path
 from threading import Thread
-from typing import Optional
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     main_thread = Thread(target = main_target, daemon = True)
     main_thread.start()
     try:
+        ccd_wrapper.start()
         yield
     finally:
         try:
@@ -90,7 +90,7 @@ async def websocket_endpoint(websocket: WebSocket):
         receiver.cancel()
         await asyncio.gather(sender, receiver, return_exceptions = True)
 
-def image_response(frame_id: int, image: Optional[bytes], current_id: int) -> Response:
+def image_response(frame_id: int, image: bytes | None, current_id: int) -> Response:
     headers = {
         'Cache-Control': 'no-store',
         'X-Frame-Id': str(frame_id)

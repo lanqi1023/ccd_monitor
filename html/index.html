@@ -238,14 +238,6 @@
       height: auto;
     }
 
-    #grid-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
     .array-wrap {
       min-height: 0;
     }
@@ -859,12 +851,6 @@
       object-fit: contain;
     }
 
-    #grid-canvas {
-      inset: auto;
-      width: auto;
-      height: auto;
-    }
-
     .analytics-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
@@ -1030,7 +1016,7 @@
 
     /* Switchable preview workspace */
     :root {
-      --rail-width: 390px;
+      --rail-width: 350px;
       --section-gap: 32px;
     }
 
@@ -1195,6 +1181,59 @@
       font-size: 10px;
     }
 
+    .panel-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .download-button {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 1px solid #263746;
+      border-radius: 50%;
+      background: rgb(7 13 19 / 62%);
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+    }
+
+    .download-button:hover:not(:disabled),
+    .download-button:focus-visible {
+      border-color: rgb(40 199 232 / 58%);
+      background: rgb(40 199 232 / 8%);
+      color: var(--accent);
+      outline: none;
+    }
+
+    .download-button:disabled {
+      cursor: default;
+      opacity: 0.35;
+    }
+
+    .download-button svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .preview-list .download-button {
+      width: 24px;
+      height: 24px;
+    }
+
+    .preview-list .download-button svg {
+      width: 13px;
+      height: 13px;
+    }
+
     .preview-list .panel-meta,
     .preview-list .stats {
       display: none;
@@ -1252,6 +1291,10 @@
     .preview-stage .histogram-panel {
       display: flex;
       flex-direction: column;
+    }
+
+    .preview-stage .image-panel {
+      align-self: stretch;
     }
 
     .preview-stage > .image-panel {
@@ -1336,6 +1379,539 @@
         min-height: 0;
       }
     }
+
+    .roi-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #8fa1af;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+    }
+
+    .roi-toggle input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    .toggle-track {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      border: 1px solid #314657;
+      border-radius: 999px;
+      background: #101b24;
+      transition: border-color 150ms ease, background 150ms ease;
+    }
+
+    .toggle-track::after {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #718390;
+      content: "";
+      transition: transform 150ms ease, background 150ms ease;
+    }
+
+    .roi-toggle input:checked + .toggle-track {
+      border-color: rgb(40 199 232 / 62%);
+      background: rgb(40 199 232 / 14%);
+    }
+
+    .roi-toggle input:checked + .toggle-track::after {
+      background: var(--accent);
+      transform: translateX(16px);
+    }
+
+    .roi-toggle input:focus-visible + .toggle-track {
+      box-shadow: 0 0 0 3px rgb(32 200 244 / 12%);
+    }
+
+    .roi-toggle input:disabled + .toggle-track {
+      opacity: 0.45;
+    }
+
+    .processing-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 12px;
+    }
+
+    .pair-field {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+      color: #8fa1af;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+    }
+
+    .pair-inputs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .pair-inputs input {
+      width: 100%;
+      min-width: 0;
+      height: 36px;
+      padding: 0 8px;
+      border: 1px solid #263746;
+      border-radius: 8px;
+      outline: none;
+      background: #091119;
+      color: var(--text);
+      font: inherit;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .pair-inputs input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgb(32 200 244 / 10%);
+    }
+
+    .pair-inputs input:disabled {
+      cursor: default;
+      opacity: 0.45;
+    }
+
+    @media (max-width: 420px) {
+      .processing-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Control cards and tabbed workspace */
+    :root {
+      --rail-width: 350px;
+      --section-gap: 20px;
+      --stage-height: clamp(620px, calc(100vh - 159px), 680px);
+    }
+
+    .control-rail {
+      display: block;
+    }
+
+    #camera-form {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .control-card {
+      display: flex;
+      flex-direction: column;
+      height: calc(61px + var(--stage-height));
+      padding: 21px;
+    }
+
+    .control-card .panel-header {
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .control-card-footer {
+      display: grid;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 20px;
+    }
+
+    .control-card .apply-button {
+      width: 100%;
+      margin: 0;
+    }
+
+    .process-panel {
+      background: linear-gradient(155deg, rgb(14 23 32 / 96%), rgb(9 15 22 / 96%));
+    }
+
+    .process-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 34px;
+      margin-top: 20px;
+      margin-bottom: 16px;
+      padding-bottom: 4px;
+      color: #8fa1af;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+    }
+
+    .process-toggle .roi-toggle {
+      flex: 0 0 auto;
+    }
+
+    .control-card .processing-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 15px;
+      min-width: 0;
+    }
+
+    .workspace-toolbar {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 46px;
+    }
+
+    .view-bar {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      min-height: 46px;
+    }
+
+    .view-tabs {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .view-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .view-tabs button {
+      position: relative;
+      flex: 0 0 auto;
+      height: 38px;
+      padding: 0 17px;
+      border: 1px solid rgb(43 61 75 / 76%);
+      border-radius: 10px;
+      background: rgb(10 18 25 / 70%);
+      color: #718694;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+    }
+
+    .view-tabs button:hover {
+      border-color: rgb(76 102 120 / 76%);
+      color: #c4d0d7;
+      background: rgb(31 47 59 / 62%);
+    }
+
+    .view-tabs button[aria-selected="true"] {
+      border-color: rgb(40 199 232 / 28%);
+      background: #162631;
+      color: #f2f5f7;
+      box-shadow: inset 0 0 0 1px rgb(40 199 232 / 18%);
+    }
+
+    .view-tab-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+      padding: 0;
+      border: 1px solid rgb(43 61 75 / 76%);
+      border-radius: 9px;
+      background: rgb(10 18 25 / 70%);
+      overflow: hidden;
+      transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+    }
+
+    .view-tab-group:hover {
+      border-color: rgb(76 102 120 / 76%);
+      background: rgb(24 37 47 / 82%);
+      box-shadow: 0 0 0 1px rgb(76 102 120 / 12%);
+    }
+
+    .view-tab-group:hover > [role="tab"],
+    .view-tab-group:hover .tab-download {
+      background: transparent;
+      color: #c7d3da;
+    }
+
+    .view-tab-group:hover .tab-download {
+      border-left-color: rgb(76 102 120 / 76%);
+    }
+
+    .view-tab-group:has([aria-selected="true"]) {
+      border-color: rgb(40 199 232 / 28%);
+      background: #162631;
+      box-shadow: inset 0 0 0 1px rgb(40 199 232 / 7%);
+    }
+
+    .view-tab-group:has([aria-selected="true"]) > [role="tab"] {
+      background: transparent;
+    }
+
+    .view-tab-group > [role="tab"] {
+      height: 36px;
+      padding-right: 14px;
+      padding-left: 16px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .view-tab-group .tab-download {
+      position: relative;
+      display: grid;
+      place-items: center;
+      flex: 0 0 34px;
+      width: 34px;
+      height: 36px;
+      padding: 0;
+      border: 0;
+      border-left: 1px solid rgb(81 90 97 / 42%);
+      border-radius: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .view-tab-group .tab-download:hover:not(:disabled),
+    .view-tab-group .tab-download:focus-visible {
+      background: rgb(40 199 232 / 8%);
+      color: var(--accent);
+      outline: none;
+    }
+
+    .view-tab-group .tab-download:disabled {
+      cursor: default;
+      opacity: 0.35;
+    }
+
+    .view-tab-group .tab-download svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .workspace-tools {
+      display: flex;
+      align-items: center;
+    }
+
+    .workspace-tools {
+      flex: 0 0 auto;
+      gap: 12px;
+    }
+
+    .workspace-tools .camera-actions {
+      display: flex;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .workspace-tools .camera-actions::before {
+      display: none;
+    }
+
+    .workspace-tools .camera-actions button,
+    .workspace-tools .download-button {
+      position: relative;
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      border-radius: 50%;
+    }
+
+    .preview-stage {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      min-width: 0;
+      min-height: 620px;
+      height: var(--stage-height);
+      gap: var(--section-gap);
+    }
+
+    .preview-stage[data-view="overview"] {
+      grid-template-columns: minmax(0, 1fr) var(--rail-width);
+      grid-template-rows: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    }
+
+    .preview-stage > .preview-panel {
+      min-width: 0;
+      min-height: 0;
+      height: auto;
+      padding: 20px;
+    }
+
+    .preview-stage .panel-header {
+      min-height: 24px;
+      margin-bottom: 14px;
+    }
+
+    .preview-stage[data-view="overview"] .image-panel {
+      grid-row: 1 / 3;
+    }
+
+    .preview-stage .image-panel,
+    .preview-stage .histogram-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-stage .image-visual,
+    .preview-stage .histogram-wrap {
+      flex: 1;
+      min-height: 0;
+      height: auto;
+      aspect-ratio: auto;
+    }
+
+    .preview-stage .image-visual {
+      background: transparent;
+    }
+
+    .preview-stage .image-panel #camera-image {
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .preview-stage .array-panel {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .preview-stage .array-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      height: auto;
+    }
+
+    .preview-stage #array-canvas {
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .preview-stage[data-view="overview"] .stats {
+      gap: 3px;
+      padding-top: 8px;
+      font-size: 10px;
+    }
+
+    .preview-stage[data-view="overview"] .stats span {
+      padding: 4px;
+    }
+
+    .preview-stage[data-view="image"] > :not(.image-panel),
+    .preview-stage[data-view="array"] > :not(.array-panel),
+    .preview-stage[data-view="histogram"] > :not(.histogram-panel) {
+      display: none;
+    }
+
+    .preview-stage:not([data-view="overview"]) {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    .preview-stage:not([data-view="overview"]) > .preview-panel {
+      height: 100%;
+      padding: 26px;
+    }
+
+    .preview-stage[data-view="array"] #array-canvas {
+      width: min(100%, 720px);
+      height: auto;
+    }
+
+    .preview-stage[data-view="array"] .stats {
+      justify-content: center;
+    }
+
+    @media (max-width: 1080px) {
+      #camera-form {
+        grid-template-columns: 1fr;
+      }
+
+      .control-rail {
+        position: static;
+      }
+
+      .control-card {
+        height: auto;
+      }
+
+      .preview-stage {
+        height: 680px;
+        min-height: 0;
+      }
+    }
+
+    @media (max-width: 780px) {
+      #camera-form,
+      .preview-stage[data-view="overview"] {
+        grid-template-columns: 1fr;
+      }
+
+      .workspace-toolbar {
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .view-bar {
+        flex: 1 1 100%;
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .workspace-tools {
+        justify-content: flex-end;
+        margin-left: auto;
+        padding: 0 4px 2px;
+      }
+
+      .preview-stage {
+        height: auto;
+      }
+
+      .preview-stage[data-view="overview"] {
+        grid-template-rows: 460px 300px 300px;
+      }
+
+      .preview-stage[data-view="overview"] .image-panel {
+        grid-row: auto;
+      }
+
+      .preview-stage:not([data-view="overview"]) {
+        height: 65vh;
+        min-height: 440px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1351,13 +1927,13 @@
 
   <main class="dashboard">
     <aside class="control-rail">
-      <section class="panel camera-panel">
-        <div class="panel-header">
-          <h2>Camera Control</h2>
-          <span id="camera-state" class="panel-meta camera-state" data-state="loading">检查中</span>
-        </div>
+      <form id="camera-form">
+        <section class="panel camera-panel control-card">
+          <div class="panel-header">
+            <h2>Control</h2>
+            <span id="camera-state" class="panel-meta camera-state" data-state="loading">检查中</span>
+          </div>
 
-        <form id="camera-form">
           <div class="control-grid">
             <label class="control-field">
               Format
@@ -1397,24 +1973,99 @@
             </label>
           </div>
 
-          <div class="camera-command-column">
+          <div class="process-toggle">
+            <span>Show ROI outline</span>
+            <label class="roi-toggle" aria-label="Show ROI outline">
+              <input id="roi-display" name="roi_display" type="checkbox" disabled>
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+
+          <div class="processing-grid">
+            <label class="pair-field">
+              <span>Origin · row / col</span>
+              <span class="pair-inputs">
+                <input id="roi-row" name="roi_row" type="number" min="0" max="3071" step="1" required aria-label="ROI row" disabled>
+                <input id="roi-col" name="roi_col" type="number" min="0" max="4095" step="1" required aria-label="ROI column" disabled>
+              </span>
+            </label>
+
+            <label class="pair-field">
+              <span>ROI size · h / w</span>
+              <span class="pair-inputs">
+                <input id="roi-height" name="roi_height" type="number" min="1" max="3072" step="1" required aria-label="ROI height" disabled>
+                <input id="roi-width" name="roi_width" type="number" min="1" max="4096" step="1" required aria-label="ROI width" disabled>
+              </span>
+            </label>
+
+            <label class="pair-field">
+              <span>Array size · h / w</span>
+              <span class="pair-inputs">
+                <input id="array-height" name="array_height" type="number" min="1" max="3072" step="1" required aria-label="Array height" disabled>
+                <input id="array-width" name="array_width" type="number" min="1" max="4096" step="1" required aria-label="Array width" disabled>
+              </span>
+            </label>
+          </div>
+
+          <div class="control-card-footer">
             <button id="camera-apply" class="apply-button" type="submit" disabled>应用参数</button>
-            <div class="camera-actions" data-mode="start">
-              <button id="camera-toggle" type="button" data-action="start" aria-label="启动" title="启动" disabled>
-                <span class="action-icon" aria-hidden="true"></span>
-                <span id="camera-toggle-label" class="visually-hidden">启动</span>
-              </button>
-              <button id="camera-stop" type="button" aria-label="停止" title="停止" disabled hidden>
-                <span class="action-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">停止</span>
-              </button>
-            </div>
             <p id="camera-message" class="camera-message" aria-live="polite"></p>
           </div>
-        </form>
-      </section>
+        </section>
+      </form>
 
-      <div id="preview-list" class="preview-list" aria-label="其他视图">
+    </aside>
+
+    <section class="workspace" aria-label="CCD views">
+      <div class="workspace-toolbar">
+        <div class="view-bar">
+          <nav class="view-tabs" role="tablist" aria-label="视图切换">
+            <button type="button" role="tab" data-view="overview" aria-selected="true">Overview</button>
+            <span class="view-tab-group" role="presentation">
+              <button type="button" role="tab" data-view="image" aria-selected="false">Image</button>
+              <button id="image-download" class="tab-download" type="button" aria-label="下载当前 Image" title="下载 Image" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"/>
+                </svg>
+              </button>
+            </span>
+            <span class="view-tab-group" role="presentation">
+              <button type="button" role="tab" data-view="array" aria-selected="false">Array</button>
+              <button id="array-download" class="tab-download" type="button" aria-label="下载当前 Array" title="下载 Array" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"/>
+                </svg>
+              </button>
+            </span>
+            <button type="button" role="tab" data-view="histogram" aria-selected="false">Histogram</button>
+          </nav>
+        </div>
+
+        <div class="workspace-tools">
+          <div class="camera-actions" data-mode="start">
+            <button id="camera-toggle" type="button" data-action="start" aria-label="启动" title="启动" disabled>
+              <span class="action-icon" aria-hidden="true"></span>
+              <span id="camera-toggle-label" class="visually-hidden">启动</span>
+            </button>
+            <button id="camera-stop" type="button" aria-label="停止" title="停止" disabled hidden>
+              <span class="action-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">停止</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="preview-stage" class="preview-stage" data-view="overview" aria-live="polite">
+        <section class="panel preview-panel image-panel" data-preview="image">
+          <div class="panel-header">
+            <h2>Image</h2>
+            <span id="image-meta" class="panel-meta">—</span>
+          </div>
+          <div class="visual image-visual">
+            <img id="camera-image" alt="CCD 实时图像">
+          </div>
+        </section>
+
         <section class="panel preview-panel array-panel" data-preview="array">
           <div class="panel-header">
             <h2>Array</h2>
@@ -1440,30 +2091,17 @@
           </div>
         </section>
       </div>
-    </aside>
-
-    <div id="preview-stage" class="preview-stage" aria-live="polite">
-      <section class="panel preview-panel image-panel" data-preview="image">
-        <div class="panel-header">
-          <h2>Image</h2>
-          <span id="image-meta" class="panel-meta">—</span>
-        </div>
-        <div class="visual image-visual">
-          <img id="camera-image" alt="CCD 实时图像">
-          <canvas id="grid-canvas"></canvas>
-        </div>
-      </section>
-    </div>
+    </section>
   </main>
 
   <script>
     const cameraImage = document.querySelector('#camera-image');
-    const gridCanvas = document.querySelector('#grid-canvas');
-    const gridContext = gridCanvas.getContext('2d');
     const arrayCanvas = document.querySelector('#array-canvas');
     const arrayContext = arrayCanvas.getContext('2d');
     const histogramCanvas = document.querySelector('#histogram-canvas');
     const histogramContext = histogramCanvas.getContext('2d');
+    const imageDownload = document.querySelector('#image-download');
+    const arrayDownload = document.querySelector('#array-download');
     const status = document.querySelector('#status');
     const statusText = document.querySelector('#status-text');
     const cameraForm = document.querySelector('#camera-form');
@@ -1477,13 +2115,19 @@
     const cameraExposure = document.querySelector('#camera-exposure');
     const cameraExposureRange = document.querySelector('#camera-exposure-range');
     const cameraFrameRate = document.querySelector('#camera-frame-rate');
+    const roiDisplay = document.querySelector('#roi-display');
+    const roiRow = document.querySelector('#roi-row');
+    const roiCol = document.querySelector('#roi-col');
+    const roiHeight = document.querySelector('#roi-height');
+    const roiWidth = document.querySelector('#roi-width');
+    const arrayHeight = document.querySelector('#array-height');
+    const arrayWidth = document.querySelector('#array-width');
     const cameraActions = document.querySelector('.camera-actions');
     const cameraToggle = document.querySelector('#camera-toggle');
     const cameraToggleLabel = document.querySelector('#camera-toggle-label');
     const cameraStop = document.querySelector('#camera-stop');
-    const cameraApply = document.querySelector('#camera-apply');
-    const controlRail = document.querySelector('.control-rail');
-    const previewList = document.querySelector('#preview-list');
+    const cameraApplyButtons = [...document.querySelectorAll('.apply-button')];
+    const viewTabs = document.querySelector('.view-tabs');
     const previewStage = document.querySelector('#preview-stage');
     const cameraFields = [
       cameraFormat,
@@ -1494,6 +2138,13 @@
       cameraExposure,
       cameraExposureRange,
       cameraFrameRate,
+      roiDisplay,
+      roiRow,
+      roiCol,
+      roiHeight,
+      roiWidth,
+      arrayHeight,
+      arrayWidth,
     ];
     const cameraSliders = [
       { number: cameraHeight, range: cameraHeightRange, scale: 'linear' },
@@ -1501,23 +2152,12 @@
       { number: cameraExposure, range: cameraExposureRange, scale: 'log' },
     ];
     let objectUrl = null;
-    let grid = null;
+    let latestImageSource = null;
+    let latestArray = null;
     let cameraStatus = null;
     let cameraPending = false;
     let cameraDirty = false;
     let cameraRevision = 0;
-
-    function syncPreviewStageHeight() {
-      if (window.matchMedia('(min-width: 1081px)').matches) {
-        previewStage.style.height = `${controlRail.offsetHeight}px`;
-      } else {
-        previewStage.style.removeProperty('height');
-      }
-    }
-
-    new ResizeObserver(syncPreviewStageHeight).observe(controlRail);
-    window.addEventListener('resize', syncPreviewStageHeight);
-    syncPreviewStageHeight();
 
     function setConnectionState(connected, text = connected ? '数据已连接' : '等待数据') {
       status.dataset.state = connected ? 'connected' : 'disconnected';
@@ -1603,6 +2243,46 @@
 
     cameraFrameRate.addEventListener('change', normalizeFrameRate);
 
+    function validateProcessingGeometry() {
+      for (const field of [roiRow, roiCol, roiHeight, roiWidth, arrayHeight, arrayWidth]) {
+        field.setCustomValidity('');
+      }
+
+      const imageHeight = Number(cameraHeight.value);
+      const imageWidth = Number(cameraWidth.value);
+      const row = Number(roiRow.value);
+      const col = Number(roiCol.value);
+      const height = Number(roiHeight.value);
+      const width = Number(roiWidth.value);
+      const rows = Number(arrayHeight.value);
+      const cols = Number(arrayWidth.value);
+
+      if (![imageHeight, imageWidth, row, col, height, width, rows, cols].every(Number.isFinite)) {
+        return;
+      }
+
+      roiRow.max = Math.max(0, imageHeight - 1);
+      roiCol.max = Math.max(0, imageWidth - 1);
+      roiHeight.max = Math.max(1, imageHeight - row);
+      roiWidth.max = Math.max(1, imageWidth - col);
+      arrayHeight.max = Math.max(1, height);
+      arrayWidth.max = Math.max(1, width);
+
+      if (row + height > imageHeight) {
+        roiHeight.setCustomValidity('ROI 高度超出图像范围');
+      }
+      if (col + width > imageWidth) {
+        roiWidth.setCustomValidity('ROI 宽度超出图像范围');
+      }
+      if (rows > height) {
+        arrayHeight.setCustomValidity('阵列高度不能大于 ROI 高度');
+      }
+      if (cols > width) {
+        arrayWidth.setCustomValidity('阵列宽度不能大于 ROI 宽度');
+      }
+
+    }
+
     function updateCameraControls() {
       const ready = cameraStatus !== null;
       for (const field of cameraFields) {
@@ -1627,7 +2307,9 @@
       cameraActions.dataset.mode = ready && cameraStatus.opened ? 'session' : 'start';
       cameraStop.hidden = !ready || !cameraStatus.opened;
       cameraStop.disabled = !ready || cameraPending || !cameraStatus.opened;
-      cameraApply.disabled = !ready || cameraPending || !cameraDirty;
+      for (const button of cameraApplyButtons) {
+        button.disabled = !ready || cameraPending || !cameraDirty;
+      }
     }
 
     function renderCameraStatus(nextStatus, syncForm = true) {
@@ -1649,7 +2331,12 @@
         [cameraHeight.value, cameraWidth.value] = nextStatus.size;
         cameraExposure.value = nextStatus.exposure;
         cameraFrameRate.value = Number(nextStatus.frame_rate).toFixed(2);
+        roiDisplay.checked = nextStatus.roi_display;
+        [roiRow.value, roiCol.value] = nextStatus.roi_origin;
+        [roiHeight.value, roiWidth.value] = nextStatus.roi_size;
+        [arrayHeight.value, arrayWidth.value] = nextStatus.array_size;
         for (const control of cameraSliders) syncRangeFromNumber(control);
+        validateProcessingGeometry();
         cameraDirty = false;
       }
       updateCameraControls();
@@ -1675,7 +2362,13 @@
       }
     }
 
-    async function runCameraAction(path, options = {}) {
+    async function runCameraAction(path, options = {}, behavior = {}) {
+      const {
+        syncForm = true,
+        successMessage = '操作成功',
+      } = behavior;
+      let successful = false;
+
       cameraRevision += 1;
       cameraPending = true;
       setCameraMessage('正在执行…');
@@ -1683,8 +2376,9 @@
 
       try {
         const nextStatus = await cameraRequest(path, options);
-        renderCameraStatus(nextStatus, true);
-        setCameraMessage('操作成功');
+        renderCameraStatus(nextStatus, syncForm);
+        setCameraMessage(successMessage);
+        successful = true;
       } catch (error) {
         try {
           const nextStatus = await cameraRequest('/api/camera');
@@ -1697,17 +2391,39 @@
         cameraPending = false;
         updateCameraControls();
       }
+      return successful;
     }
 
-    cameraForm.addEventListener('input', () => {
+    cameraForm.addEventListener('input', (event) => {
+      if (event.target === roiDisplay) return;
+      validateProcessingGeometry();
       cameraDirty = true;
       setCameraMessage('参数尚未应用');
       updateCameraControls();
     });
 
+    roiDisplay.addEventListener('change', async () => {
+      const hadPendingChanges = cameraDirty;
+      const successful = await runCameraAction('/api/camera/config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roi_display: roiDisplay.checked }),
+      }, {
+        syncForm: false,
+        successMessage: hadPendingChanges
+          ? 'ROI 显示已更新；其他参数尚未应用'
+          : 'ROI 显示已更新',
+      });
+
+      if (!successful && cameraStatus) {
+        roiDisplay.checked = cameraStatus.roi_display;
+      }
+    });
+
     cameraForm.addEventListener('submit', (event) => {
       event.preventDefault();
       normalizeFrameRate();
+      validateProcessingGeometry();
       if (!cameraForm.reportValidity()) return;
 
       runCameraAction('/api/camera/config', {
@@ -1718,6 +2434,10 @@
           size: [Number(cameraHeight.value), Number(cameraWidth.value)],
           exposure: Number(cameraExposure.value),
           frame_rate: Number(cameraFrameRate.value),
+          roi_display: roiDisplay.checked,
+          roi_origin: [Number(roiRow.value), Number(roiCol.value)],
+          roi_size: [Number(roiHeight.value), Number(roiWidth.value)],
+          array_size: [Number(arrayHeight.value), Number(arrayWidth.value)],
         }),
       });
     });
@@ -1733,6 +2453,8 @@
 
     function setImage(source) {
       if (!source) return;
+      latestImageSource = source;
+      imageDownload.disabled = false;
 
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);
@@ -1747,92 +2469,74 @@
       }
     }
 
-    function drawGrid() {
-      if (!cameraImage.naturalWidth || !cameraImage.naturalHeight) return;
-
-      const displayHeight = cameraImage.clientHeight;
-      const displayWidth = cameraImage.clientWidth;
-      const pixelRatio = window.devicePixelRatio || 1;
-      gridCanvas.style.left = `${cameraImage.offsetLeft}px`;
-      gridCanvas.style.top = `${cameraImage.offsetTop}px`;
-      gridCanvas.style.width = `${displayWidth}px`;
-      gridCanvas.style.height = `${displayHeight}px`;
-      gridCanvas.height = Math.round(displayHeight * pixelRatio);
-      gridCanvas.width = Math.round(displayWidth * pixelRatio);
-      gridContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      gridContext.clearRect(0, 0, displayWidth, displayHeight);
-      if (!grid) return;
-
-      const { row, column, height, width, rows, columns } = grid;
-      const scaleY = displayHeight / cameraImage.naturalHeight;
-      const scaleX = displayWidth / cameraImage.naturalWidth;
-
-      gridContext.beginPath();
-      for (let x = 0; x <= columns; x += 1) {
-        const position = (column + width * x / columns) * scaleX;
-        gridContext.moveTo(position, row * scaleY);
-        gridContext.lineTo(position, (row + height) * scaleY);
-      }
-      for (let y = 0; y <= rows; y += 1) {
-        const position = (row + height * y / rows) * scaleY;
-        gridContext.moveTo(column * scaleX, position);
-        gridContext.lineTo((column + width) * scaleX, position);
-      }
-
-      gridContext.strokeStyle = 'rgb(0 12 24 / 55%)';
-      gridContext.lineWidth = 2;
-      gridContext.stroke();
-      gridContext.strokeStyle = 'rgb(2 188 241 / 58%)';
-      gridContext.lineWidth = 1;
-      gridContext.stroke();
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    cameraImage.addEventListener('load', drawGrid);
-    new ResizeObserver(drawGrid).observe(cameraImage);
-
-    function syncPreviewPanels() {
-      for (const panel of previewList.querySelectorAll('.preview-panel')) {
-        const title = panel.querySelector('h2')?.textContent || '视图';
-        panel.tabIndex = 0;
-        panel.setAttribute('role', 'button');
-        panel.setAttribute('aria-label', `在主区域预览 ${title}`);
-      }
-
-      const activePanel = previewStage.querySelector('.preview-panel');
-      activePanel?.removeAttribute('tabindex');
-      activePanel?.removeAttribute('role');
-      activePanel?.removeAttribute('aria-label');
+    function downloadTimestamp() {
+      return new Date().toISOString().replace(/[:.]/g, '-');
     }
 
-    function swapPreview(panel) {
-      const activePanel = previewStage.querySelector('.preview-panel');
-      if (!activePanel || panel.parentElement !== previewList) return;
+    imageDownload.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      if (!latestImageSource) return;
 
-      const placeholder = document.createComment('preview position');
-      previewList.replaceChild(placeholder, panel);
-      previewStage.replaceChild(panel, activePanel);
-      previewList.replaceChild(activePanel, placeholder);
-      syncPreviewPanels();
-      window.requestAnimationFrame(() => {
-        drawGrid();
-        drawHistogram();
+      try {
+        const blob = latestImageSource instanceof Blob
+          ? latestImageSource
+          : await fetch(latestImageSource).then((response) => response.blob());
+        downloadBlob(blob, `ccd-image-${downloadTimestamp()}.jpg`);
+      } catch (error) {
+        console.error('Image download failed', error);
+      }
+    });
+
+    arrayDownload.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (!latestArray) return;
+
+      const lines = [];
+      for (let row = 0; row < latestArray.rows; row += 1) {
+        const begin = row * latestArray.columns;
+        lines.push(latestArray.values.slice(begin, begin + latestArray.columns).join(','));
+      }
+      const blob = new Blob([`\uFEFF${lines.join('\r\n')}`], {
+        type: 'text/csv;charset=utf-8',
       });
+      downloadBlob(blob, `ccd-array-${downloadTimestamp()}.csv`);
+    });
+
+    function setActiveView(view) {
+      previewStage.dataset.view = view;
+      for (const tab of viewTabs.querySelectorAll('[data-view]')) {
+        tab.setAttribute('aria-selected', String(tab.dataset.view === view));
+      }
+      window.requestAnimationFrame(drawHistogram);
     }
 
-    previewList.addEventListener('click', (event) => {
-      const panel = event.target.closest('.preview-panel');
-      if (panel) swapPreview(panel);
+    viewTabs.addEventListener('click', (event) => {
+      const tab = event.target.closest('[data-view]');
+      if (tab) setActiveView(tab.dataset.view);
     });
 
-    previewList.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      const panel = event.target.closest('.preview-panel');
-      if (!panel) return;
+    viewTabs.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      const tabs = [...viewTabs.querySelectorAll('[data-view]')];
+      const current = tabs.indexOf(document.activeElement);
+      if (current < 0) return;
       event.preventDefault();
-      swapPreview(panel);
+      const step = event.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(current + step + tabs.length) % tabs.length];
+      next.focus();
+      setActiveView(next.dataset.view);
     });
-
-    syncPreviewPanels();
 
     const parulaColors = [
       [53, 42, 135],
@@ -1952,6 +2656,12 @@
       const flat = nested ? rows.flat().map(Number) : values;
       height ??= nested ? rows.length : 1;
       width ??= nested ? rows[0].length : flat.length;
+      latestArray = {
+        values: Array.from(flat, Number),
+        rows: height,
+        columns: width,
+      };
+      arrayDownload.disabled = false;
 
       arrayCanvas.width = width;
       arrayCanvas.height = height;
@@ -1979,24 +2689,9 @@
       array,
       arrayRows = null,
       arrayColumns = null,
-      roiRow = null,
-      roiColumn = null,
-      roiHeight = null,
-      roiWidth = null,
       frameId = null,
       timestamp = null,
     }) {
-      grid = [roiRow, roiColumn, roiHeight, roiWidth, arrayRows, arrayColumns]
-        .every(Number.isFinite)
-        ? {
-            row: roiRow,
-            column: roiColumn,
-            height: roiHeight,
-            width: roiWidth,
-            rows: arrayRows,
-            columns: arrayColumns,
-          }
-        : null;
       setImage(image);
       setArray(array, arrayRows, arrayColumns);
       setConnectionState(true);
@@ -2011,19 +2706,15 @@
     window.ccdView = { update: updateView, setConnectionState };
 
     function decodePacket(buffer) {
-      const headerSize = 28;
+      const headerSize = 20;
       if (buffer.byteLength < headerSize) throw new Error('packet is too short');
 
       const view = new DataView(buffer);
       const frameId = view.getUint32(0, true);
       const timestamp = view.getFloat64(4, true);
-      const roiRow = view.getUint16(12, true);
-      const roiColumn = view.getUint16(14, true);
-      const roiHeight = view.getUint16(16, true);
-      const roiWidth = view.getUint16(18, true);
-      const rows = view.getUint16(20, true);
-      const columns = view.getUint16(22, true);
-      const jpegSize = view.getUint32(24, true);
+      const rows = view.getUint16(12, true);
+      const columns = view.getUint16(14, true);
+      const jpegSize = view.getUint32(16, true);
       const arraySize = rows * columns * Float32Array.BYTES_PER_ELEMENT;
       const jpegOffset = headerSize + arraySize;
 
@@ -2042,10 +2733,6 @@
         array,
         arrayRows: rows,
         arrayColumns: columns,
-        roiRow,
-        roiColumn,
-        roiHeight,
-        roiWidth,
         frameId,
         timestamp,
       };
@@ -2176,10 +2863,6 @@
         array: values,
         arrayRows: arrayHeight,
         arrayColumns: arrayWidth,
-        roiRow,
-        roiColumn,
-        roiHeight,
-        roiWidth,
         frameId: 0,
         timestamp: Date.now(),
       });

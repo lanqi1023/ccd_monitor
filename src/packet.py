@@ -4,15 +4,14 @@ from numpy.typing import NDArray
 from struct import Struct
 from threading import Lock
 from time import time
-from typing import Optional
 
 class __Packet:
     def __init__(self):
         self.__lock     = Lock()
         self.__frame_id = -1
-        self.__data: Optional[bytes] = None
+        self.__data: bytes | None = None
 
-    def get(self) -> tuple[int, Optional[bytes]]:
+    def get(self) -> tuple[int, bytes | None]:
         with self.__lock:
             return self.__frame_id, self.__data
 
@@ -37,10 +36,10 @@ class __Input_Packet(__Packet):
 class __Output_Packet(__Packet):
     def __init__(self, JPEG_QUALITY: int = 80):
         super().__init__()
-        self.HEADER       = Struct('<IdHHHHHHI')
+        self.HEADER       = Struct('<IdHHI')
         self.JPEG_QUALITY = JPEG_QUALITY
 
-    def set(self, image: NDArray, array: NDArray, roi_info: tuple[int, int, int, int]) -> None:
+    def set(self, image: NDArray, array: NDArray) -> None:
         try:
             success, code_array = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, self.JPEG_QUALITY])
         except Exception as e:
@@ -53,7 +52,7 @@ class __Output_Packet(__Packet):
         with self._Packet__lock:
             self._Packet__frame_id += 1
             self._Packet__data = self.HEADER.pack(
-                self._Packet__frame_id, time() * 1000, *roi_info, *array.shape, len(code_byte)
+                self._Packet__frame_id, time() * 1000, *array.shape, len(code_byte)
             ) + array.astype('<f4').tobytes() + code_byte
 
 input  = __Input_Packet()
