@@ -1,5 +1,14 @@
+import os
 import sys
-sys.path.append(r'_PATH_TO_GALAXY_SDK_\GalaxySDK\Development\Samples\Python')
+from pathlib import Path
+GALAXY_SDK_DEVELOPMENT = os.getenv('GALAXY_SDK_DEVELOPMENT')
+if not GALAXY_SDK_DEVELOPMENT:
+    raise RuntimeError('GALAXY_SDK_DEVELOPMENT is not configured')
+PATH_TO_GXIPY = Path(GALAXY_SDK_DEVELOPMENT) / 'Samples' / 'Python'
+if not PATH_TO_GXIPY.is_dir():
+    raise RuntimeError(f'gxipy path not found: {PATH_TO_GXIPY}')
+sys.path.insert(0, str(PATH_TO_GXIPY))
+
 import gxipy
 
 import cv2
