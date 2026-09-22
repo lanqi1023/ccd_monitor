@@ -64,25 +64,33 @@ class __CCD_Wrapper:
         )
 
     def __process(self, bayer: NDArray) -> tuple[NDArray, NDArray]:
-        image = cv2.cvtColor(bayer, cv2.COLOR_BAYER_RGGB2GRAY)
+        bgr  = cv2.cvtColor(bayer, cv2.COLOR_BAYER_RGGB2BGR)
+        gray = cv2.cvtColor(bayer, cv2.COLOR_BAYER_RGGB2GRAY)
 
-        roi_row,      roi_col     = self.__config.roi_origin
-        roi_height,   roi_width   = self.__config.roi_size
-        array_height, array_width = self.__config.array_size
-        roi = image[
+        g = np.empty((bayer.shape[0], bayer.shape[1] // 2), dtype = np.uint8)
+        g[0::2] = bayer[0::2, 1::2]
+        g[1::2] = bayer[1::2, 0::2]
+
+        # get roi
+        roi_row,    roi_col   = self.__config.roi_origin
+        roi_height, roi_width = self.__config.roi_size
+        roi = gray[
             roi_row : roi_row + roi_height,
             roi_col : roi_col + roi_width
         ]
 
+        # get array
+        array_height, array_width = self.__config.array_size
         array = roi.reshape(
             array_height, roi_height // array_height,
             array_width,  roi_width  // array_width
         ).mean(axis=(1, 3), dtype=np.float32)
 
-        # plot roi rectangle
+        # plot roi
         if self.__config.roi_display:
-            cv2.rectangle(image, (roi_col, roi_row), (roi_col + roi_width - 1, roi_row + roi_height - 1), 255, 2)
-        return image, array
+            cv2.rectangle(bgr, (roi_col, roi_row), (roi_col + roi_width - 1, roi_row + roi_height - 1), [255, 255, 255], 2)
+            cv2.rectangle(gray, (roi_col, roi_row), (roi_col + roi_width - 1, roi_row + roi_height - 1), 255, 2)
+        return bgr, array
 
     def __on_capture(self, image: NDArray) -> None:
         now = monotonic()
