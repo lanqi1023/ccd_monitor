@@ -1,4 +1,4 @@
-# CCD Web Monitor v2.1
+# CCD Web Monitor v2.2
 
 1. 安装 [Galaxy SDK](https://www.daheng-imaging.com/list-58-1.html)
 
