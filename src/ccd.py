@@ -1,5 +1,5 @@
 import sys
-sys.path.append(r'D:\software\GalaxySDK\Development\Samples\Python')
+sys.path.append(r'_PATH_TO_GALAXY_SDK_\GalaxySDK\Development\Samples\Python')
 import gxipy
 
 import cv2
