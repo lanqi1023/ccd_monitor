@@ -25,8 +25,8 @@ class Config(TypedDict, total = False):
 class __CCD_Wrapper:
     def __init__(
         self,
-        process: Callable[[NDArray], tuple[NDArray, NDArray, tuple[int, int, int, int]]],
-        publish: Callable[[tuple[NDArray, NDArray, tuple[int, int, int, int]]], None]
+        process: Callable[[NDArray], tuple[NDArray, tuple[int, int, int, int]]],
+        publish: Callable[[NDArray, NDArray, tuple[int, int, int, int]], None]
     ):
         self.__ccd  = CCD()
         self.__lock = RLock()
@@ -40,11 +40,11 @@ class __CCD_Wrapper:
         self.__exposure   = 10000
         self.__frame_rate = 10
 
-    def __on_capture(self, bayer: NDArray) -> None:
+    def __on_capture(self, image: NDArray) -> None:
         now = monotonic()
         if now - self.__last_time >= 1.0 / self.__frame_rate:
             self.__last_time = now
-            self.__publish(self.__process(bayer))
+            self.__publish(image, *self.__process(image))
 
     @staticmethod
     def __validate(config: Config) -> Config:
@@ -124,7 +124,12 @@ class __CCD_Wrapper:
                     self.__ccd.size       = self.__size
                     self.__ccd.exposure   = self.__exposure
                     self.__ccd.frame_rate = self.__frame_rate
-                    self.__ccd.process    = CCD.PROCESS_NONE
+                    if self.__format == 'BayerRG8':
+                        self.__ccd.process = CCD.PROCESS_RG8_GRAY
+                    elif self.__format == 'BayerRG12':
+                        self.__ccd.process = CCD.PROCESS_RG12_GRAY
+                    else:
+                        self.__ccd.process = CCD.PROCESS_NONE
                     self.__last_time = 0.0
                     if not self.__ccd.begin_thread(on_capture = self.__on_capture):
                         success = self.__ccd.close()
@@ -169,6 +174,13 @@ class __CCD_Wrapper:
                 elif self.__opened:
                     for name, value in config.items():
                         setattr(self.__ccd, name, value)
+                        if name == 'format':
+                            if value == 'BayerRG8':
+                                self.__ccd.process = CCD.PROCESS_RG8_GRAY
+                            elif value == 'BayerRG12':
+                                self.__ccd.process = CCD.PROCESS_RG12_GRAY
+                            else:
+                                self.__ccd.process = CCD.PROCESS_NONE
                 return self.status()
 
 ccd_wrapper = __CCD_Wrapper(process = process, publish = output.set)

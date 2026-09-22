@@ -53,6 +53,8 @@ class CCD:
     PROCESS_NONE = lambda bayer: bayer
     PROCESS_RG8  = lambda bayer: cv2.cvtColor(bayer, cv2.COLOR_BAYER_RGGB2BGR)
     PROCESS_RG12 = lambda bayer: cv2.cvtColor((bayer >> 4).astype(np.uint8), cv2.COLOR_BAYER_RGGB2BGR)
+    PROCESS_RG8_GRAY  = lambda bayer: cv2.cvtColor(bayer, cv2.COLOR_BAYER_RGGB2GRAY)
+    PROCESS_RG12_GRAY = lambda bayer: cv2.cvtColor((bayer >> 4).astype(np.uint8), cv2.COLOR_BAYER_RGGB2GRAY)
 
     def __init__(self):
         self.process: Callable[[NDArray], NDArray] = CCD.PROCESS_RG8

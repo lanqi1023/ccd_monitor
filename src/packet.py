@@ -40,8 +40,7 @@ class __Output_Packet(__Packet):
         self.HEADER       = Struct('<IdHHHHHHI')
         self.JPEG_QUALITY = JPEG_QUALITY
 
-    def set(self, input: tuple[NDArray, NDArray, tuple[int, int, int, int]]) -> None:
-        image, array, roi_info = input
+    def set(self, image: NDArray, array: NDArray, roi_info: tuple[int, int, int, int]) -> None:
         try:
             success, code_array = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, self.JPEG_QUALITY])
         except Exception as e:

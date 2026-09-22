@@ -16,10 +16,6 @@ async def lifespan(_app: FastAPI):
     main_thread = Thread(target = main_target, daemon = True)
     main_thread.start()
     try:
-        ccd_wrapper.start()
-    except RuntimeError:
-        logging.exception('camera startup failed')
-    try:
         yield
     finally:
         try:
