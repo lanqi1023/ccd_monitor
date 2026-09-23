@@ -7,8 +7,11 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.responses import Response, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from threading import Thread
+
+HTML_DIR = Path(__file__).parent.parent / 'html'
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -23,10 +26,11 @@ async def lifespan(_app: FastAPI):
         except RuntimeError:
             logging.exception('camera shutdown failed')
 app = FastAPI(lifespan = lifespan)
+app.mount('/static', StaticFiles(directory = HTML_DIR / 'static'), name = 'static')
 
 @app.get('/')
 async def index():
-    return FileResponse(Path(__file__).parent.parent / 'html/index.html')
+    return FileResponse(HTML_DIR / 'index.html')
 
 @app.get('/api/camera', response_model = Status)
 def camera_status():
@@ -113,7 +117,7 @@ def api_weight(current_id: int = -1):
 @app.get('/input')
 @app.get('/weight')
 async def image_page():
-    return FileResponse(Path(__file__).parent.parent / 'html/image.html')
+    return FileResponse(HTML_DIR / 'image.html')
 
 if __name__ == '__main__':
     import uvicorn
