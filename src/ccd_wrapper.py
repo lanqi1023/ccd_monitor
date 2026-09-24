@@ -43,7 +43,7 @@ CAMERA_FIELDS = {
     'frame_rate'
 }
 
-class __CCD_Wrapper:
+class __CCDWrapper:
     def __init__(self, publish: Callable[[NDArray, NDArray], None]):
         self.__ccd  = CCD()
         self.__lock = RLock()
@@ -307,4 +307,4 @@ class __CCD_Wrapper:
                             setattr(self.__ccd, k, v)
                 return self.status()
 
-ccd_wrapper = __CCD_Wrapper(publish = output.set)
+ccd_wrapper = __CCDWrapper(publish = output.set)

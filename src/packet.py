@@ -15,7 +15,7 @@ class __Packet:
         with self.__lock:
             return self.__frame_id, self.__data
 
-class __Input_Packet(__Packet):
+class __InputPacket(__Packet):
     def __init__(self, JPEG_QUALITY: int = 90):
         super().__init__()
         self.JPEG_QUALITY = JPEG_QUALITY
@@ -33,7 +33,7 @@ class __Input_Packet(__Packet):
             self._Packet__frame_id += 1
             self._Packet__data = code_array.tobytes()
 
-class __Output_Packet(__Packet):
+class __OutputPacket(__Packet):
     def __init__(self, JPEG_QUALITY: int = 80):
         super().__init__()
         self.HEADER       = Struct('<IdHHI')
@@ -55,6 +55,6 @@ class __Output_Packet(__Packet):
                 self._Packet__frame_id, time() * 1000, *array.shape, len(code_byte)
             ) + array.astype('<f4').tobytes() + code_byte
 
-input  = __Input_Packet()
-weight = __Input_Packet()
-output = __Output_Packet()
+input  = __InputPacket()
+weight = __InputPacket()
+output = __OutputPacket()
