@@ -1,5 +1,5 @@
 from ccd import CCD
-from packet import output
+from packet import acti_out
 
 import cv2
 import numpy as np
@@ -307,4 +307,4 @@ class __CCDWrapper:
                             setattr(self.__ccd, k, v)
                 return self.status()
 
-ccd_wrapper = __CCDWrapper(publish = output.set)
+ccd_wrapper = __CCDWrapper(publish = acti_out.set)

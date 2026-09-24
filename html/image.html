@@ -29,13 +29,13 @@
   <script>
     const image = document.querySelector('#image');
     const imageType = location.pathname.split('/').filter(Boolean).at(-1);
-    const supportedTypes = new Set(['input', 'weight']);
+    const supportedTypes = new Set(['acti_in', 'weight']);
 
     if (!supportedTypes.has(imageType)) {
       throw new Error(`Unsupported image type: ${imageType}`);
     }
 
-    document.title = imageType === 'input' ? 'Input' : 'Weight';
+    document.title = imageType === 'acti_in' ? 'Acti In' : 'Weight';
     image.alt = `${document.title} image`;
 
     let frameId = -1;

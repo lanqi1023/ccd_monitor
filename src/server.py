@@ -1,6 +1,6 @@
 from ccd_wrapper import Config, Status, ccd_wrapper
 from main import main_target
-from packet import input, weight, output
+from packet import acti_in, weight, acti_out
 
 import asyncio
 import logging
@@ -71,7 +71,7 @@ async def websocket_endpoint(websocket: WebSocket):
     async def send_frames():
         last_frame_id = -1
         while True:
-            frame_id, data = output.get()
+            frame_id, data = acti_out.get()
             if frame_id != last_frame_id:
                 await websocket.send_bytes(data)
                 last_frame_id = frame_id
@@ -106,15 +106,15 @@ def image_response(frame_id: int, image: bytes | None, current_id: int) -> Respo
     else:
         return Response(content = image, media_type = 'image/jpeg', headers = headers)
 
-@app.get('/api/input.jpg')
-def api_input(current_id: int = -1):
-    return image_response(*input.get(), current_id)
+@app.get('/api/acti_in.jpg')
+def api_acti_in(current_id: int = -1):
+    return image_response(*acti_in.get(), current_id)
 
 @app.get('/api/weight.jpg')
 def api_weight(current_id: int = -1):
     return image_response(*weight.get(), current_id)
 
-@app.get('/input')
+@app.get('/acti_in')
 @app.get('/weight')
 async def image_page():
     return FileResponse(HTML_DIR / 'image.html')

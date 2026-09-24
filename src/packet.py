@@ -55,6 +55,6 @@ class __OutputPacket(__Packet):
                 self._Packet__frame_id, time() * 1000, *array.shape, len(code_byte)
             ) + array.astype('<f4').tobytes() + code_byte
 
-input  = __InputPacket()
-weight = __InputPacket()
-output = __OutputPacket()
+acti_in  = __InputPacket()
+weight   = __InputPacket()
+acti_out = __OutputPacket()
