@@ -88,6 +88,9 @@ class CCD:
                 self.__feature = self.__camera.get_remote_device_feature_control()
                 self.__feature.get_enum_feature('UserSetSelector').set('Default')
                 self.__feature.get_command_feature('UserSetLoad').send_command()
+                self.__feature.get_enum_feature('ExposureAuto').set('Off')
+                self.__feature.get_enum_feature('GainAuto').set('Off')
+                self.__feature.get_float_feature('Gain').set(0.0)
                 self.log.info(f"open camera {device_list[0]['model_name']} on {device_list[0]['ip']}")
                 return True
             else:
@@ -167,6 +170,7 @@ class CCD:
     @exposure.setter
     def exposure(self, exposure: float) -> None:
         try:
+            self.__feature.get_enum_feature('ExposureAuto').set('Off')
             self.__feature.get_float_feature('ExposureTime').set(float(exposure))
         except Exception as e:
             raise RuntimeError(f'set exposure to {exposure} failed') from e
