@@ -174,6 +174,21 @@ function fitRoiToImage() {
     roiHeight.value = height;
     roiWidth.value = width;
   }
+  fitArrayToRoi();
+}
+
+function fitArrayToRoi() {
+  const fields = [roiHeight, roiWidth, arrayHeight, arrayWidth];
+  if (fields.some((field) => field.value.trim() === '')) return;
+
+  const height = Number(roiHeight.value);
+  const width = Number(roiWidth.value);
+  if (!Number.isFinite(height) || !Number.isFinite(width) || height < 1 || width < 1) {
+    return;
+  }
+
+  arrayHeight.value = Math.min(Number(arrayHeight.value), height);
+  arrayWidth.value = Math.min(Number(arrayWidth.value), width);
 }
 
 function validateProcessingGeometry() {
@@ -342,6 +357,14 @@ for (const field of [cameraHeight, cameraWidth]) {
   field.addEventListener('change', () => {
     if (!field.checkValidity()) return;
     fitRoiToImage();
+    validateProcessingGeometry();
+  });
+}
+
+for (const field of [roiHeight, roiWidth]) {
+  field.addEventListener('change', () => {
+    if (!field.checkValidity()) return;
+    fitArrayToRoi();
     validateProcessingGeometry();
   });
 }
