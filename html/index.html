@@ -43,16 +43,16 @@
             <label class="control-field slider-field">
               <span>Height</span>
               <span class="range-control">
-                <input id="camera-height-range" type="range" min="2304" max="3072" step="16" aria-label="Height slider" disabled>
-                <input id="camera-height" name="height" type="number" min="2304" max="3072" step="16" required disabled>
+                <input id="camera-height-range" type="range" min="16" max="3072" step="16" aria-label="Height slider" disabled>
+                <input id="camera-height" name="height" type="number" min="16" max="3072" step="16" required disabled>
               </span>
             </label>
 
             <label class="control-field slider-field">
               <span>Width</span>
               <span class="range-control">
-                <input id="camera-width-range" type="range" min="3072" max="4096" step="16" aria-label="Width slider" disabled>
-                <input id="camera-width" name="width" type="number" min="3072" max="4096" step="16" required disabled>
+                <input id="camera-width-range" type="range" min="16" max="4096" step="16" aria-label="Width slider" disabled>
+                <input id="camera-width" name="width" type="number" min="16" max="4096" step="16" required disabled>
               </span>
             </label>
 
@@ -176,7 +176,19 @@
         <section class="panel preview-panel histogram-panel" data-preview="histogram">
           <div class="panel-header">
             <h2>Histogram</h2>
-            <span id="histogram-meta" class="panel-meta">64 bins · 0–255</span>
+            <div class="histogram-controls">
+              <label class="histogram-bin-control" for="histogram-bins">
+                <span>Bins</span>
+                <select id="histogram-bins" aria-label="Histogram bins">
+                  <option value="16">16</option>
+                  <option value="32">32</option>
+                  <option value="64" selected>64</option>
+                  <option value="128">128</option>
+                  <option value="256">256</option>
+                </select>
+              </label>
+              <span id="histogram-meta" class="panel-meta">0 samples</span>
+            </div>
           </div>
           <div class="histogram-wrap">
             <canvas id="histogram-canvas" width="640" height="210"></canvas>

@@ -3,6 +3,7 @@ const arrayCanvas = document.querySelector('#array-canvas');
 const arrayContext = arrayCanvas.getContext('2d');
 const histogramCanvas = document.querySelector('#histogram-canvas');
 const histogramContext = histogramCanvas.getContext('2d');
+const histogramBins = document.querySelector('#histogram-bins');
 const imageDownload = document.querySelector('#image-download');
 const arrayDownload = document.querySelector('#array-download');
 const status = document.querySelector('#status');
@@ -145,6 +146,35 @@ function normalizeFrameRate() {
 }
 
 cameraFrameRate.addEventListener('change', normalizeFrameRate);
+
+function fitRoiToImage() {
+  const fields = [cameraHeight, cameraWidth, roiRow, roiCol, roiHeight, roiWidth];
+  if (fields.some((field) => field.value.trim() === '')) return;
+
+  const imageHeight = Number(cameraHeight.value);
+  const imageWidth = Number(cameraWidth.value);
+  let row = Number(roiRow.value);
+  let col = Number(roiCol.value);
+  let height = Number(roiHeight.value);
+  let width = Number(roiWidth.value);
+
+  if (![imageHeight, imageWidth, row, col, height, width].every(Number.isFinite)) {
+    return;
+  }
+
+  if (row >= imageHeight || col >= imageWidth) {
+    row = 0;
+    col = 0;
+    roiRow.value = row;
+    roiCol.value = col;
+  }
+  if (row + height > imageHeight || col + width > imageWidth) {
+    height = imageHeight - row;
+    width = imageWidth - col;
+    roiHeight.value = height;
+    roiWidth.value = width;
+  }
+}
 
 function validateProcessingGeometry() {
   for (const field of [roiRow, roiCol, roiHeight, roiWidth, arrayHeight, arrayWidth]) {
@@ -299,11 +329,22 @@ async function runCameraAction(path, options = {}, behavior = {}) {
 
 cameraForm.addEventListener('input', (event) => {
   if (event.target === roiDisplay) return;
+  if ([cameraHeightRange, cameraWidthRange].includes(event.target)) {
+    fitRoiToImage();
+  }
   validateProcessingGeometry();
   cameraDirty = true;
   setCameraMessage('参数尚未应用');
   updateCameraControls();
 });
+
+for (const field of [cameraHeight, cameraWidth]) {
+  field.addEventListener('change', () => {
+    if (!field.checkValidity()) return;
+    fitRoiToImage();
+    validateProcessingGeometry();
+  });
+}
 
 roiDisplay.addEventListener('change', async () => {
   const hadPendingChanges = cameraDirty;
@@ -326,6 +367,7 @@ roiDisplay.addEventListener('change', async () => {
 cameraForm.addEventListener('submit', (event) => {
   event.preventDefault();
   normalizeFrameRate();
+  fitRoiToImage();
   validateProcessingGeometry();
   if (!cameraForm.reportValidity()) return;
 
@@ -466,7 +508,7 @@ function heatColor(value) {
   return `rgb(${color[0]} ${color[1]} ${color[2]})`;
 }
 
-const histogramBinCount = 64;
+let histogramBinCount = Number(histogramBins.value);
 let histogramCounts = new Uint32Array(histogramBinCount);
 
 function drawHistogram() {
@@ -503,15 +545,15 @@ function drawHistogram() {
     histogramContext.stroke();
   }
 
-  const gap = compact ? 1 : 2;
   const barWidth = plotWidth / histogramBinCount;
+  const gap = barWidth >= 4 ? 2 : barWidth >= 2 ? 1 : 0;
   histogramContext.fillStyle = '#029dce';
   histogramCounts.forEach((count, index) => {
     const barHeight = count / maxCount * plotHeight;
     histogramContext.fillRect(
       plot.left + index * barWidth + gap / 2,
       plot.top + plotHeight - barHeight,
-      Math.max(1, barWidth - gap),
+      Math.max(0.5, barWidth - gap),
       barHeight,
     );
   });
@@ -542,10 +584,19 @@ function setHistogram(values) {
     histogramCounts[index] += 1;
   }
 
-  document.querySelector('#histogram-meta').textContent =
-    `${histogramBinCount} bins · ${values.length} samples`;
+  document.querySelector('#histogram-meta').textContent = `${values.length} samples`;
   drawHistogram();
 }
+
+histogramBins.addEventListener('change', () => {
+  histogramBinCount = Number(histogramBins.value);
+  if (latestArray) {
+    setHistogram(latestArray.values);
+  } else {
+    histogramCounts = new Uint32Array(histogramBinCount);
+    drawHistogram();
+  }
+});
 
 new ResizeObserver(() => {
   window.requestAnimationFrame(drawHistogram);

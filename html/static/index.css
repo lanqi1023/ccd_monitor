@@ -1760,6 +1760,41 @@ main.dashboard {
   margin-bottom: 14px;
 }
 
+.histogram-controls,
+.histogram-bin-control {
+  display: flex;
+  align-items: center;
+}
+
+.histogram-controls {
+  gap: 10px;
+}
+
+.histogram-bin-control {
+  gap: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+#histogram-bins {
+  height: 26px;
+  padding: 0 22px 0 8px;
+  border: 1px solid #263746;
+  border-radius: 7px;
+  outline: none;
+  background: #091119;
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+#histogram-bins:hover,
+#histogram-bins:focus-visible {
+  border-color: rgb(40 199 232 / 58%);
+}
+
 .preview-stage[data-view="overview"] .image-panel {
   grid-row: 1 / 3;
 }

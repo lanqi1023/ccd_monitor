@@ -200,10 +200,20 @@ class __CCDWrapper:
             else:
                 raise TypeError('invalid array_size type')
 
+        if (image_height, image_width) != self.__config.size:
+            if image_height <= roi_row or image_width <= roi_col:
+                roi_row, roi_col = 0, 0
+            if image_height < roi_row + roi_height or image_width < roi_col + roi_width:
+                roi_height = image_height - roi_row
+                roi_width  = image_width  - roi_col
+                array_height = min(array_height, roi_height)
+                array_width  = min(array_width,  roi_width)
+
         if (roi_row + roi_height <= image_height and roi_col + roi_width <= image_width
             and array_height <= roi_height and array_width <= roi_width
         ):
-            roi_height, roi_width = (roi_height // array_height) * array_height, (roi_width // array_width) * array_width
+            roi_height = (roi_height // array_height) * array_height
+            roi_width  = (roi_width // array_width) * array_width
             if (image_height, image_width) != self.__config.size:
                 validated.size = image_height, image_width
             if (roi_row, roi_col) != self.__config.roi_origin:
